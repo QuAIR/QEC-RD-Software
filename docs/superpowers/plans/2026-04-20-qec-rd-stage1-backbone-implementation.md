@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build the first-stage `qec_rd` platform backbone on top of `stim`, with unified core objects, generated/imported circuit entry points, DEM-to-graph conversion, Stim sampling, MWPM decoding through `pymatching`, BP+OSD decoding through `ldpc`, custom decoder integration hooks, and basic analysis.
+**Goal:** Build the first-stage `qec_rd` platform backbone on top of `stim`, with unified core objects, generated/imported circuit entry points, built-in rotated/unrotated surface and toric code support, simple CSS-code-driven stabilizer measurement circuit generation, fixed DEM-to-graph conversion, Stim sampling, MWPM decoding through `pymatching`, BP+OSD decoding through `ldpc`, custom decoder integration hooks, and basic analysis.
 
-**Architecture:** Keep `stim` as the only runtime backend and implement the platform logic inside `qec_rd`. The package structure follows the approved backbone design: `core` for stable objects, `adapters.stim` for backend conversion, `kernel.*` for circuit/graph/decode/analysis logic, and `api` as a thin public surface. The implementation should first stabilize the object model and circuit entry, then open the DEM/graph chain, then add MWPM and BP+OSD decoding, and finally close the loop with analysis and integration tests.
+**Architecture:** Keep `stim` as the only runtime backend and implement the platform logic inside `qec_rd`. The package structure follows the approved backbone design: `core` for stable objects, `adapters.stim` for backend conversion, `kernel.*` for circuit/graph/decode/analysis logic, and `api` as a thin public surface. The implementation should first stabilize the object model and code/circuit entry, then add built-in surface/toric and CSS-driven circuit generation, then open the fixed DEM/graph chain, then add MWPM and BP+OSD decoding plus custom-decoder hooks, and finally close the loop with analysis and integration tests.
 
 **Tech Stack:** Python 3.10+, `stim`, `numpy`, `scipy`, `pytest`, `pymatching`, `ldpc`
 
@@ -19,9 +19,9 @@
 - `src/qec_rd/core/__init__.py`
   Re-exports the core platform objects.
 - `src/qec_rd/core/codes.py`
-  Defines `CodeSpec`.
+  Defines `CodeSpec` and code-description structures for built-in and CSS-driven circuit generation.
 - `src/qec_rd/core/noise.py`
-  Defines `NoiseModel`.
+  Defines a Stim-compatible Pauli-noise `NoiseModel`.
 - `src/qec_rd/core/artifacts.py`
   Defines `CircuitArtifact`, `DemArtifact`, `DecodingGraph`, and graph-supporting data containers.
 - `src/qec_rd/core/results.py`
@@ -35,7 +35,7 @@
 - `src/qec_rd/kernel/__init__.py`
   Package marker for kernel modules.
 - `src/qec_rd/kernel/circuit.py`
-  Generated/imported circuit entry logic.
+  Generated/imported circuit entry logic, including built-in surface/toric support and CSS-driven stabilizer measurement circuits.
 - `src/qec_rd/kernel/graph.py`
   DEM extraction and decoding graph construction.
 - `src/qec_rd/kernel/decode.py`
@@ -58,6 +58,10 @@
   Core object model tests.
 - `tests/test_circuit_entry.py`
   Generated and imported circuit entry tests.
+- `tests/test_builtin_codes.py`
+  Built-in rotated/unrotated surface and toric code circuit tests.
+- `tests/test_css_codegen.py`
+  User-defined CSS-code circuit generation tests.
 - `tests/test_dem_graph.py`
   DEM extraction and graph construction tests.
 - `tests/test_sampling.py`
@@ -366,6 +370,7 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True, slots=True)
 class NoiseModel:
+    # Stage 1 keeps noise limited to Stim-executable Pauli-like parameters.
     after_clifford_depolarization: float | None = None
     before_round_data_depolarization: float | None = None
     before_measure_flip_probability: float | None = None
@@ -505,6 +510,124 @@ git commit -m "feat(core): add stage1 object model"
 
 ---
 
+### Task 2A: Built-In Code Families and CSS CodeSpec Shapes
+
+**Files:**
+- Modify: `src/qec_rd/core/codes.py`
+- Modify: `src/qec_rd/core/__init__.py`
+- Test: `tests/test_builtin_codes.py`
+- Test: `tests/test_css_codegen.py`
+
+- [ ] **Step 1: Write the failing built-in-code and CSS-shape tests**
+
+```python
+# tests/test_builtin_codes.py
+from qec_rd.core import CodeSpec
+
+
+def test_codespec_supports_stage1_builtin_code_families():
+    rotated = CodeSpec(family="rotated_surface_code", distance=3, rounds=3)
+    unrotated = CodeSpec(family="unrotated_surface_code", distance=3, rounds=3)
+    toric = CodeSpec(family="toric_code", distance=4, rounds=4)
+
+    assert rotated.family == "rotated_surface_code"
+    assert unrotated.family == "unrotated_surface_code"
+    assert toric.family == "toric_code"
+```
+
+```python
+# tests/test_css_codegen.py
+import numpy as np
+
+from qec_rd.core import CodeSpec
+
+
+def test_codespec_accepts_user_defined_css_code_information():
+    hx = np.array([[1, 1, 0, 0], [0, 0, 1, 1]], dtype=np.uint8)
+    hz = np.array([[1, 0, 1, 0], [0, 1, 0, 1]], dtype=np.uint8)
+    code = CodeSpec(
+        family="css_code",
+        distance=2,
+        rounds=2,
+        metadata={"hx": hx, "hz": hz, "name": "toy_css"},
+    )
+
+    assert code.family == "css_code"
+    assert code.metadata["hx"].shape == (2, 4)
+    assert code.metadata["hz"].shape == (2, 4)
+```
+
+- [ ] **Step 2: Run the tests to verify they fail**
+
+Run: `pytest tests/test_builtin_codes.py tests/test_css_codegen.py -v`
+
+Expected: FAIL because `CodeSpec` is still only being exercised for the repetition-code path and does not yet document Stage 1 built-in families or CSS-oriented metadata expectations.
+
+- [ ] **Step 3: Tighten `CodeSpec` for Stage 1 code coverage**
+
+```python
+# src/qec_rd/core/codes.py
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Any
+
+
+@dataclass(frozen=True, slots=True)
+class CodeSpec:
+    family: str
+    distance: int
+    rounds: int
+    logical_basis: str = "Z"
+    metadata: dict[str, Any] = field(default_factory=dict)
+```
+
+```python
+# src/qec_rd/core/__init__.py
+from qec_rd.core.artifacts import CircuitArtifact, DecodingGraph, DemArtifact
+from qec_rd.core.codes import CodeSpec
+from qec_rd.core.noise import NoiseModel
+from qec_rd.core.results import AnalysisReport, DecodeResult, SyndromeBatch
+from qec_rd.core.types import (
+    CircuitSourceKind,
+    DecoderConfigurationError,
+    QecRdError,
+    UnsupportedCircuitFormatError,
+    UnsupportedDemError,
+)
+
+__all__ = [
+    "AnalysisReport",
+    "CircuitArtifact",
+    "CircuitSourceKind",
+    "CodeSpec",
+    "DecodeResult",
+    "DecodingGraph",
+    "DecoderConfigurationError",
+    "DemArtifact",
+    "NoiseModel",
+    "QecRdError",
+    "SyndromeBatch",
+    "UnsupportedCircuitFormatError",
+    "UnsupportedDemError",
+]
+```
+
+- [ ] **Step 4: Run the tests to verify they pass**
+
+Run: `pytest tests/test_builtin_codes.py tests/test_css_codegen.py -v`
+
+Expected: PASS with `2 passed`.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/qec_rd/core/codes.py src/qec_rd/core/__init__.py tests/test_builtin_codes.py tests/test_css_codegen.py
+git commit -m "test(core): cover stage1 builtin code families and css metadata"
+```
+
+---
+
 ### Task 3: Generated and Imported Circuit Entry
 
 **Files:**
@@ -550,6 +673,31 @@ def test_load_circuit_accepts_stim_object_and_file(tmp_path: Path):
     file_artifact = load_circuit(stim_path, format="stim")
     assert file_artifact.source_kind is CircuitSourceKind.STIM_FILE
     assert file_artifact.origin_metadata["path"].endswith("rep_d3.stim")
+
+
+def test_build_circuit_supports_builtin_surface_and_toric_families():
+    rotated = build_circuit(CodeSpec(family="rotated_surface_code", distance=3, rounds=3))
+    unrotated = build_circuit(CodeSpec(family="unrotated_surface_code", distance=3, rounds=3))
+    toric = build_circuit(CodeSpec(family="toric_code", distance=4, rounds=4))
+
+    assert isinstance(rotated.raw_handle, stim.Circuit)
+    assert isinstance(unrotated.raw_handle, stim.Circuit)
+    assert isinstance(toric.raw_handle, stim.Circuit)
+
+
+def test_build_circuit_supports_user_defined_css_code():
+    code = CodeSpec(
+        family="css_code",
+        distance=2,
+        rounds=2,
+        metadata={
+            "hx": [[1, 1, 0, 0], [0, 0, 1, 1]],
+            "hz": [[1, 0, 1, 0], [0, 1, 0, 1]],
+        },
+    )
+    artifact = build_circuit(code)
+    assert isinstance(artifact.raw_handle, stim.Circuit)
+    assert "MPP" in str(artifact.raw_handle)
 ```
 
 - [ ] **Step 2: Run the tests to verify they fail**
@@ -566,18 +714,60 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import numpy as np
 import stim
 
 from qec_rd.core import CircuitArtifact, CircuitSourceKind, CodeSpec, NoiseModel, UnsupportedCircuitFormatError
 
 
+def _stim_generated_name(family: str) -> str:
+    mapping = {
+        "repetition_code:memory": "repetition_code:memory",
+        "rotated_surface_code": "surface_code:rotated_memory_z",
+        "unrotated_surface_code": "surface_code:unrotated_memory_z",
+        "toric_code": "surface_code:toric_memory_z",
+    }
+    if family not in mapping:
+        raise UnsupportedCircuitFormatError(f"Unsupported Stage 1 generated family: {family!r}")
+    return mapping[family]
+
+
+def _build_simple_css_measurement_circuit(code_spec: CodeSpec) -> stim.Circuit:
+    hx = np.asarray(code_spec.metadata["hx"], dtype=np.uint8)
+    hz = np.asarray(code_spec.metadata["hz"], dtype=np.uint8)
+    num_qubits = hx.shape[1]
+    circuit = stim.Circuit()
+    circuit.append("R", range(num_qubits))
+    for _ in range(code_spec.rounds):
+        for row in hx:
+            targets = [index for index, value in enumerate(row) if value]
+            if targets:
+                circuit.append("MPP", [stim.target_x(index) for index in targets])
+                circuit.append("DETECTOR", [stim.target_rec(-1)])
+        for row in hz:
+            targets = [index for index, value in enumerate(row) if value]
+            if targets:
+                circuit.append("MPP", [stim.target_z(index) for index in targets])
+                circuit.append("DETECTOR", [stim.target_rec(-1)])
+        circuit.append("TICK")
+    circuit.append("MPP", [stim.target_z(0)])
+    circuit.append("OBSERVABLE_INCLUDE", [stim.target_rec(-1)], 0)
+    return circuit
+
+
 def build_generated_stim_circuit(code_spec: CodeSpec, noise_model: NoiseModel | None) -> CircuitArtifact:
-    if code_spec.family != "repetition_code:memory":
-        raise UnsupportedCircuitFormatError(
-            f"Unsupported Stage 1 generated family: {code_spec.family!r}"
+    if code_spec.family == "css_code":
+        circuit = _build_simple_css_measurement_circuit(code_spec)
+        return CircuitArtifact(
+            source_kind=CircuitSourceKind.GENERATED,
+            source_format="stim",
+            code_spec=code_spec,
+            origin_metadata={"generator": "css_measurement_builder"},
+            raw_handle=circuit,
         )
+
     circuit = stim.Circuit.generated(
-        code_spec.family,
+        _stim_generated_name(code_spec.family),
         distance=code_spec.distance,
         rounds=code_spec.rounds,
         after_clifford_depolarization=noise_model.after_clifford_depolarization if noise_model else 0.0,
@@ -665,6 +855,8 @@ git commit -m "feat(circuit): add generated and imported circuit entry"
 - Modify: `src/qec_rd/adapters/stim.py`
 - Modify: `src/qec_rd/kernel/graph.py`
 - Test: `tests/test_dem_graph.py`
+
+This task intentionally fixes the Stage 1 DEM and graph-construction path as platform-owned behavior. It is not a user-customization track in this phase.
 
 - [ ] **Step 1: Write the failing DEM/graph tests**
 
@@ -1560,9 +1752,14 @@ git commit -m "feat(analysis): add stage1 reports and end-to-end tests"
 ### Spec coverage
 
 - Unified object model: covered by Task 2
+- Built-in rotated surface, unrotated surface, and toric support: covered by Tasks 2A and 3
+- User-defined CSS code to simple stabilizer measurement circuit generation: covered by Tasks 2A and 3
+- Stim-only Pauli-compatible noise scope: covered by Task 2
 - Generated/imported circuit entry: covered by Task 3
 - DEM extraction and decoding graph: covered by Task 4
+- Fixed non-customizable DEM/graph behavior: covered by Task 4
 - Stim sampling to standard batch: covered by Task 5
+- Additional `SyndromeBatch` entry readiness: covered by Task 2 result-object design and Task 5 sampling normalization
 - MWPM via external package: covered by Task 6
 - BP+OSD via external package: covered by Task 7
 - Custom decoder end-to-end hook: covered by Task 7A

@@ -14,6 +14,8 @@ This design focuses on the first-stage goals:
 - Use `stim` as the only execution backend in the first stage.
 - Rebuild and absorb the core local scientific capabilities of DeltaKit inside `qec_rd`.
 - Support two first-class entry modes: built-in code-driven circuit generation and external circuit import.
+- Include rotated surface code, unrotated surface code, and toric code as built-in code families.
+- Allow users to define arbitrary codes, especially arbitrary CSS codes, and generate simple stabilizer measurement circuits from code information.
 - Include both MWPM and BP+OSD in the implementation and acceptance targets, while relying on standard external decoder packages instead of re-implementing decoder algorithms in-repo.
 - Allow user-supplied custom decoders to plug into the same end-to-end platform chain instead of living as isolated offline utilities.
 
@@ -24,7 +26,9 @@ This design focuses on the first-stage goals:
 - Circuit generation, import, execution, and sampling based on `stim`
 - A unified core object chain:
   `CodeSpec -> CircuitArtifact -> DemArtifact -> DecodingGraph -> SyndromeBatch -> DecodeResult -> AnalysisReport`
-- A standard `NoiseModel` representation and Stim-side noise injection
+- Built-in support for rotated surface code, unrotated surface code, and toric code
+- Support for user-provided code information, especially CSS-code information, to generate simple stabilizer measurement circuits
+- A `NoiseModel` limited to Pauli-compatible noise that can actually run in `stim`
 - DEM extraction from circuits and construction of a standard decoding graph
 - At least one MWPM decoding path
 - At least one BP+OSD decoding path
@@ -40,6 +44,7 @@ This design focuses on the first-stage goals:
 - Notebook workflows as part of the product surface
 - Full hardware control, compilation, deployment, or experiment orchestration
 - Implementation-level TensorQEC integration
+- Non-Pauli noise models
 - Full replication of DeltaKit Explorer’s visualization and advanced peripheral analysis ecosystem
 - In-house implementations of MWPM, BP+OSD, or other decoder algorithms
 
@@ -77,6 +82,7 @@ The first stage adopts a "platform backbone + Stim-only backend" structure. No m
 - The public inputs and outputs of `kernel.graph`, `kernel.decode`, and `kernel.analysis` must not expose raw `stim.Circuit` or raw `stim.DetectorErrorModel` as the platform language.
 - DeltaKit is the capability benchmark, not the runtime dependency that defines the platform backbone.
 - Extensibility points must be defined in terms of platform-standard objects, not by bypassing the backbone and passing arbitrary backend-native objects through the system.
+- DEM extraction and graph construction must remain fixed, platform-owned behavior in Stage 1 and should not be exposed as user-customizable strategy points.
 
 ## 4. Package Structure and Responsibilities
 
@@ -109,6 +115,8 @@ This package is responsible only for bridging to `stim`, not for platform-level 
 Responsible for the circuit and code-experiment kernel:
 
 - Generate base code-family circuits from `CodeSpec`
+- Generate circuits from structured definitions of rotated surface code, unrotated surface code, and toric code
+- Generate simple stabilizer measurement circuits from user-provided arbitrary CSS code information
 - Import and wrap external circuits
 - Perform basic circuit validation
 - Organize annotations, coordinates, logical observables, and detector metadata
@@ -161,7 +169,7 @@ Must remain thin and stable, exposing only common local-research entry points:
 - `CodeSpec`
   Describes the experiment definition: code family, distance, rounds, logical basis, schedule, layout, and related parameters.
 - `NoiseModel`
-  Describes phenomenological noise, basic physical noise, and future parameter slots for leakage and correlated noise.
+  Describes Stim-executable Pauli-like noise, basic phenomenological noise, and basic physical noise parameters.
 
 These objects describe what experiment should be run. They do not carry runtime results.
 
@@ -308,11 +316,9 @@ Even though the first stage does not introduce a multi-backend/provider architec
 ### 8A.2 Recommended customization points
 
 - `CodeSpec` extension
-  Future code families, schedule parameters, and experiment metadata should be addable without breaking the backbone.
+  Future code families, schedule parameters, and experiment metadata should be addable without breaking the backbone; Stage 1 should at minimum cover rotated surface, unrotated surface, toric, and user-defined CSS codes.
 - `NoiseModel` extension
-  Future leakage, correlated-noise, and hardware-calibrated parameters should fit the same model family.
-- DEM / graph construction strategy
-  The platform should allow future variants in DEM annotation, filtering, edge-weight logic, and graph/hypergraph construction, while still normalizing outputs into `DemArtifact` and `DecodingGraph`.
+  Future Stim-supported Pauli-like and hardware-calibrated parameters should fit the same model family, but Stage 1 should not include non-Pauli noise.
 - Runtime data entry
   Although Stage 1 is centered on Stim sampling, `SyndromeBatch` should be able to admit future external experiment data or hardware-returned data.
 - Analysis layer
@@ -322,6 +328,8 @@ Even though the first stage does not introduce a multi-backend/provider architec
 
 - Execution backend
   Stage 1 remains fixed to `stim`.
+- DEM extraction and graph-construction strategy
+  Stage 1 keeps this as fixed platform-owned logic, not as a user-defined extension point.
 - General provider/plugin systems
   Stage 1 should not introduce a generic plugin mechanism; it should keep only clear and lightweight extension boundaries.
 
@@ -385,6 +393,8 @@ Even though the first stage does not introduce a multi-backend/provider architec
 The first stage must at least align with the following categories of local scientific capability:
 
 - Circuit generation and import
+- Built-in rotated surface, unrotated surface, and toric codes
+- User-defined CSS code to simple stabilizer measurement circuit generation
 - Stim-driven sampling
 - DEM and graph construction
 - Basic local decoding
