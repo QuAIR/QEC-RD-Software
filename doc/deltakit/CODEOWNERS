@@ -1,0 +1,6 @@
+# Default owners for everything in the repo unless
+# a later match takes precedence.
+* @nelimee @rolandriver
+
+# @nelimee and @AndrewPattersonRL co-own any file in deltakit-explorer
+deltakit-explorer/  @nelimee @AndrewPattersonRL @rolandriver

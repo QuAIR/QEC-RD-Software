@@ -1,0 +1,431 @@
+# generate Clifford group members
+# https://www.nature.com/articles/s41534-022-00583-7
+
+"""
+    CliffordGate{PM<:PermMatrixCSC{Int, Int}}
+
+CliffordGate represented as a permutation matrix in the Pauli basis.
+It is a callable object that can be applied to a [`PauliString`](@ref) or a [`PauliGroupElement`](@ref).
+
+### Fields
+- `mat::PM`: The permutation matrix.
+
+### Examples
+```jldoctest
+julia> using TensorQEC.Yao
+
+julia> hgate = CliffordGate(H)
+CliffordGate(nqubits = 1)
+ I → I
+ X → Z
+ Y → -Y
+ Z → X
+
+julia> hgate(P"IX", (2,))
++1 * IZ
+
+julia> hgate(PauliGroupElement(1, P"IX"), (2,))
++i * IZ
+```
+"""
+struct CliffordGate{PM<:PermMatrixCSC{Complex{Int}, Int}}
+    mat::PM
+end
+# TODO: improve performance
+CliffordGate(g::AbstractBlock) = CliffordGate(to_perm_matrix(pauli_repr(g)))
+
+Yao.mat(c::CliffordGate) = c.mat
+Base.:(*)(c1::CliffordGate, c2::CliffordGate) = CliffordGate(c1.mat * c2.mat)
+YaoAPI.nqubits(c::CliffordGate) = log2i(size(c.mat, 1)) ÷ 2
+
+Base.show(io::IO, ::MIME"text/plain", c::CliffordGate) = show(io, c)
+function Base.show(io::IO, c::CliffordGate)
+    n = nqubits(c)
+    basis = pauli_basis(Val(n))
+    println(io, "CliffordGate(nqubits = $n)")
+    for (j, b) in enumerate(basis)
+        bi = basis[c.mat.perm[j]]
+        coeff = c.mat.vals[j]
+        print(io, " $(b) → ")
+        coeff == 1 ? print(io, bi) : coeff == -1 ? print(io, "-$(bi)") : real(coeff) ≈ 0 ? print(io, imag(coeff), "im * $(bi)") : imag(coeff) ≈ 0 ? print(io, real(coeff), " * $(bi)") : print(io, coeff, " * $(bi)")
+        j < length(basis) && println(io)
+    end
+end
+
+"""
+    clifford_group(n::Int)
+
+Generate the n-qubit Clifford group.
+"""
+clifford_group(n::Int) = generate_group(clifford_generators(n))
+
+function clifford_generators(n::Int)
+    @assert n > 0
+    if n == 1
+        return CliffordGate.([H, ConstGate.S])
+    else
+        return CliffordGate.(vcat(
+            [put(n, i=>H) for i=1:n],
+            [put(n, i=>ConstGate.S) for i=1:n],
+            [put(n, (i, j)=>ConstGate.CNOT) for j=1:n for i=j+1:n],
+            [put(n, (j, i)=>ConstGate.CNOT) for j=1:n for i=j+1:n]
+        ))
+    end
+end
+
+"""
+    to_perm_matrix(matrix; atol=1e-8)
+
+Convert a general matrix to a permutation matrix.
+
+### Arguments
+- `m`: The matrix representation of the gate.
+- `atol`: The tolerance to zeros in the matrix.
+
+### Returns
+- `pm`: The permutation matrix. pm.perm is the permutation vector, pm.vals is the leading coefficient.
+"""
+function to_perm_matrix(m::AbstractMatrix; atol=1e-8)
+    @assert all(j -> count(i->abs(i) > atol, view(m, :, j)) == 1, 1:size(m, 2))
+    perm = [findfirst(i->abs(i) > atol, view(m, :, j)) for j=1:size(m, 2)]
+    vals = [_safe_convert(Complex{Int}, m[perm[j], j]) for j=1:size(m, 2)]
+    return PermMatrixCSC(perm, vals) |> LuxurySparse.staticize
+end
+function _safe_convert(::Type{T}, x::Complex) where T
+    return _safe_convert(T, real(x)) + _safe_convert(T, imag(x)) * im
+end
+function _safe_convert(::Type{T}, x::Real) where T
+    y = round(T, x)
+    @assert x ≈ y "fail to convert target to type: $T"
+    return y
+end
+
+function generate_group(v::Vector; max_size=Inf)
+    # loop until no new elements are added
+    keep_loop = true
+    items_vector = copy(v)
+    items = Dict(zip(items_vector, 1:length(items_vector)))
+    while keep_loop && length(items_vector) < max_size
+        keep_loop = false
+        for m in v, k in 1:length(items_vector)
+            candidate = m * items_vector[k]
+            if !haskey(items, candidate)
+                keep_loop = true
+                items[candidate] = k + 1
+                push!(items_vector, candidate)
+            end
+        end
+    end
+    return items_vector
+end
+
+# integer type should fit the size of the matrix
+struct CliffordTable{N, Ti}
+    basis::Vector{PauliString{N}}
+    table::Vector{PermMatrixCSC{Int8, Ti, Vector{Int8}, Vector{Ti}}}
+end
+
+"""
+    (gate::CliffordGate)(ps::PauliString, pos::NTuple{M, Int}) where {M}
+
+Map the Pauli string `ps` by a Clifford gate `gate`. Return the mapped Pauli group element.
+
+### Arguments
+- `ps`: The Pauli string.
+- `pos`: The positions to apply the permutation.
+
+### Returns
+- `pg`: The mapped Pauli group element.
+"""
+function (gate::CliffordGate)(ps::PauliString{N}, pos::NTuple{M, Int}) where {N, M}
+    pm = mat(gate)
+    @assert 4^M == length(pm.perm)
+    idx = pauli_c2l(Val(M), ntuple(k->ps.operators[pos[k]].id + 1, Val(M)))
+    ci = pauli_l2c(Val(M), pm.perm[idx])
+    paulis = ntuple(Val{N}()) do k
+        loc = findfirst(==(k), pos)
+        loc === nothing ? ps[k] : Pauli(ci[loc]-1)
+    end
+    return PauliGroupElement(_complex2int(pm.vals[idx]), PauliString(paulis))
+end
+_complex2int(x) = x==1+0im ? 0 : x==0+1im ? 1 : x==-1+0im ? 2 : 3
+function (gate::CliffordGate)(pg::PauliGroupElement, pos::NTuple{M, Int}) where {M}
+    elem = gate(pg.ps, pos)
+    return PauliGroupElement(_add_phase(pg.phase, elem.phase), elem.ps)
+end
+
+struct ErrorInstance
+    loc::Vector{Int}
+    error_type::Vector{Symbol}
+end
+
+struct CompiledCliffordCircuit{M1, M2}
+    sequence::Vector{Tuple{Symbol, Int, Int}}  
+    # (operation, gate-idx, locs-idx)
+    # operation| gate-idx | locs-idx |
+    # :single_qubit | gate-idx | locs-idx |
+    # :two_qubit | gate-idx | locs-idx |
+    # :atom_loss | loss_rate_idx | loc |
+    # :depolarization1 | depolarization_rate_idx | loc |
+    # :depolarization2 | depolarization_rate_idx | locs-idx |
+    # :trivial | 0 | 0 |
+    single_qubit_gates::Vector{CliffordGate{M1}}
+    single_qubit_locs::Vector{Tuple{Int}}
+    two_qubit_gates::Vector{CliffordGate{M2}}
+    two_qubit_locs::Vector{Tuple{Int, Int}}
+    atom_loss_rate::Vector{Float64}
+    depolarization_rate::Vector{Float64}
+    depolarization2_locs::Vector{Tuple{Int, Int}}
+    depolarization_gates::Vector{CliffordGate{M1}}
+end
+
+function compile_clifford_circuit(qc::ChainBlock)
+    sequence = Tuple{Symbol, Int, Int}[]
+    single_qubit_gates = typeof(CliffordGate(X))[]
+    single_qubit_locs = Tuple{Int}[]
+    two_qubit_gates = typeof(CliffordGate(ConstGate.CNOT))[]
+    two_qubit_locs = Tuple{Int, Int}[]
+    atom_loss_rate = Float64[]
+    depolarization_rate = Float64[]
+    depolarization2_locs = Tuple{Int, Int}[]
+    depolarization_gates = [CliffordGate(X), CliffordGate(Y), CliffordGate(Z)]
+    qc = YaoBlocks.Optimise.simplify(qc; rules=[to_basictypes, Optimise.eliminate_nested])
+    gatedict = Dict{UInt64, Int}()
+    for _gate in qc
+        gate = toput(_gate)
+        if gate isa Measure || gate.content isa NumberedMeasure || gate.content isa MixedUnitaryChannel || gate.content isa MeasureAndReset
+            push!(sequence, (:trivial, 0, 0))
+            continue
+        end
+        if gate.content isa DepolarizingChannel
+            if length(gate.locs) == 1
+                push!(depolarization_rate, gate.content.p)
+                push!(sequence, (:depolarization1, length(depolarization_rate), gate.locs[1]))
+            elseif length(gate.locs) == 2
+                push!(depolarization_rate, gate.content.p)
+                push!(depolarization2_locs, gate.locs)
+                push!(sequence, (:depolarization2, length(depolarization_rate), length(depolarization2_locs)))
+            else
+                error("Only support single-qubit and two-qubit gates for now. Get $(typeof(gate))")
+            end
+            continue
+        end
+        if gate.content isa AtomLossBlock
+            push!(atom_loss_rate, gate.content.p)
+            push!(sequence, (:atom_loss, length(atom_loss_rate), gate.locs[1]))
+            continue
+        end
+
+        key = hash(gate.content)
+
+        if haskey(gatedict, key) 
+            cgate_idx = gatedict[key]
+        else 
+            if nqubits(gate.content) == 1
+                push!(single_qubit_gates, CliffordGate(gate.content))
+                cgate_idx = length(single_qubit_gates)
+            else
+                push!(two_qubit_gates, CliffordGate(gate.content))
+                cgate_idx = length(two_qubit_gates)
+            end
+            gatedict[key] = cgate_idx
+        end
+        if nqubits(gate.content) == 1
+            push!(single_qubit_locs, gate.locs)
+            push!(sequence, (:single_qubit, cgate_idx, length(single_qubit_locs)))
+        else
+            push!(two_qubit_locs, gate.locs)
+            push!(sequence, (:two_qubit, cgate_idx, length(two_qubit_locs)))
+        end
+    end
+    return CompiledCliffordCircuit(sequence, single_qubit_gates, single_qubit_locs, two_qubit_gates, two_qubit_locs, atom_loss_rate, depolarization_rate, depolarization2_locs, depolarization_gates)
+end
+
+(cl::CompiledCliffordCircuit)(ps::PauliString) = cl(PauliGroupElement(0, ps))
+function (cl::CompiledCliffordCircuit)(pg::PauliGroupElement)
+    loss_qubits = Int[]
+    for i in 1:length(cl.sequence)
+        pg = first(_step!(cl, pg, i, loss_qubits))
+    end
+    return pg
+end
+function _step!(cl::CompiledCliffordCircuit, pg::PauliGroupElement{N}, i::Int, loss_qubits::Vector{Int}) where {N}
+    operation, gate_idx, locs_idx = cl.sequence[i]
+    if operation == :trivial
+        return pg, nothing
+    elseif operation == :single_qubit 
+        if (cl.single_qubit_locs[locs_idx][1] ∉ loss_qubits)
+            return cl.single_qubit_gates[gate_idx](pg, cl.single_qubit_locs[locs_idx]), nothing
+        else
+            return pg, nothing
+        end
+    elseif operation == :two_qubit 
+        if (cl.two_qubit_locs[locs_idx][1] ∉ loss_qubits) && (cl.two_qubit_locs[locs_idx][2] ∉ loss_qubits)
+            return cl.two_qubit_gates[gate_idx](pg, cl.two_qubit_locs[locs_idx]), nothing
+        else
+            return pg, nothing
+        end
+    elseif operation == :atom_loss
+        if rand() < cl.atom_loss_rate[gate_idx]
+            push!(loss_qubits, locs_idx)
+            return pg, ErrorInstance([locs_idx], [:atom_loss])
+        else
+            return pg, nothing
+        end
+    elseif operation == :depolarization1
+        randnum = rand()
+        if randnum < cl.depolarization_rate[gate_idx]
+            pg = cl.depolarization_gates[1](pg, (locs_idx,))
+            return pg, ErrorInstance([locs_idx], [:depolarization1_x])
+        elseif randnum < 2*cl.depolarization_rate[gate_idx]
+            pg = cl.depolarization_gates[2](pg, (locs_idx,))
+            return pg, ErrorInstance([locs_idx], [:depolarization1_y])
+        elseif randnum < 3*cl.depolarization_rate[gate_idx]
+            pg = cl.depolarization_gates[3](pg, (locs_idx,))
+            return pg, ErrorInstance([locs_idx], [:depolarization1_z])
+        else
+            return pg, nothing
+        end
+    elseif operation == :depolarization2
+        randnum = rand()
+        randidx =  Int(floor(randnum / cl.depolarization_rate[gate_idx]))       
+        if randidx >= 15
+            return pg, nothing 
+        else
+            randidx = 15 - randidx 
+            # @show randidx
+            pos1_gate = randidx%4
+            pos2_gate = randidx÷4
+            if pos1_gate > 0
+                pg = cl.depolarization_gates[pos1_gate](pg, (cl.depolarization2_locs[locs_idx][1],))
+            end
+            if pos2_gate > 0
+                pg = cl.depolarization_gates[pos2_gate](pg, (cl.depolarization2_locs[locs_idx][2],))
+            end
+            return pg, ErrorInstance(collect(cl.depolarization2_locs[locs_idx]), [:depolarization2])
+        end
+    else
+        error("Invalid operation: $operation")
+    end
+end
+
+"""
+    CliffordSimulateResult{N}
+
+The result of simulating a Pauli string by a Clifford circuit.
+
+### Fields
+- `pg::PauliGroupElement{N}`: A mapped Pauli group element as the output.
+- `error_pattern::Dict{Int, ErrorInstance}`: The error pattern. The key is the index of the operation, the value is the error instance.
+- `history::Vector{PauliGroupElement{N}}`: The history of Pauli group elements, its length is `length(circuit)+1`.
+"""
+struct CliffordSimulateResult{N}
+    pg::PauliGroupElement{N}
+    error_pattern::Dict{Int, ErrorInstance}
+    history::Vector{PauliGroupElement{N}}
+    function CliffordSimulateResult(output::PauliGroupElement{N},error_pattern::Dict{Int, ErrorInstance}, history::Vector{PauliGroupElement{N}}) where N
+        new{N}(output, error_pattern, history)
+    end
+end
+
+"""
+    clifford_simulate(paulistring, qc::ChainBlock)
+    
+Perform Clifford simulation with a Pauli string `paulistring` as the input.
+
+### Arguments
+- `paulistring`: The input Pauli string, which can be a [`PauliString`](@ref) or a [`PauliGroupElement`](@ref).
+- `qc`: The quantum circuit represented as a Yao's `ChainBlock`, its elements should be Clifford gates.
+
+### Returns
+- `result`: A [`CliffordSimulateResult`](@ref) records the output Pauli string, the phase factor, the simplified circuit, and the history of Pauli strings.
+"""
+clifford_simulate(ps::PauliString{N}, qc::ChainBlock;with_history=false) where {N} = clifford_simulate(PauliGroupElement(0, ps), qc;with_history)
+function clifford_simulate(pg::PauliGroupElement{N}, qc::ChainBlock; with_history=false) where {N}
+    cl = compile_clifford_circuit(qc)
+    loss_qubits = Int[]
+    history = PauliGroupElement{N}[]
+    push!(history, pg)
+    error_pattern = Dict{Int, ErrorInstance}()
+    for i in 1:length(cl.sequence)
+        pg,error_instance = _step!(cl, pg, i, loss_qubits)
+        if error_instance !== nothing
+            push!(error_pattern, i => error_instance)
+        end
+        if with_history
+            push!(history, pg)
+        end
+    end
+    return CliffordSimulateResult(pg, error_pattern, history)
+end
+
+function paulistring_annotate(ps::PauliString{N};color = "red") where N
+    return paulistring_annotate(ps, N;color)
+end
+function paulistring_annotate(ps::PauliString{N},num_qubits::Int;color = "red") where N
+    qc = chain(num_qubits)
+    for (loc, p) in enumerate(ps.operators)
+        p == Pauli(0) && continue
+        push!(qc, put(num_qubits, loc=>line_annotation("$p"; color)))
+    end
+    return qc
+end
+
+"""
+    annotate_history(res::CliffordSimulateResult{N},qc::ChainBlock)
+
+Annotate the history of Pauli strings in the result of `clifford_simulate` with the quantum circuit.
+
+### Arguments
+- `res`: The result of `clifford_simulate`.
+- `qc`: The quantum circuit.
+### Returns
+- `draw`: The visualization of the history.
+"""
+function annotate_history(res::CliffordSimulateResult{N},qc::ChainBlock) where N
+    qcf,_= generate_annotate_circuit(res,qc)
+    return annotate_circuit(qcf)
+end
+
+function generate_annotate_circuit(res::CliffordSimulateResult{N},qc::ChainBlock;color = "red") where N
+    qcf = chain(N)
+    pos = [1]
+    push!(qcf, paulistring_annotate(res.history[1].ps;color))
+    for i in 1:length(qc)
+        block = qc[i]
+        push!(qcf, block)
+        if !isempty(occupied_locs(block) ∩ findall(x -> x != Pauli(0), res.history[i+1].ps))
+            push!(qcf, paulistring_annotate(res.history[i+1].ps;color))
+            push!(pos, length(qcf))
+        end
+    end
+    return qcf,pos
+end
+
+function annotate_circuit(qcf::ChainBlock;filename = nothing)
+    CircuitStyles.barrier_for_chain[], temp = true, CircuitStyles.barrier_for_chain[]
+    draw = vizcircuit(qcf;filename)
+    CircuitStyles.barrier_for_chain[] = temp
+    return draw
+end
+
+function replace_block_color(qc::ChainBlock,color::String)
+    for i in 1:length(qc)
+        qc[i] = replace_block_color(qc[i],color)
+    end
+    return qc
+end
+
+replace_block_color(qc::PutBlock,color::String) = put(qc.n,qc.locs=> line_annotation(qc.content.name; color))
+
+function annotate_circuit_pics(res::CliffordSimulateResult{N},qc::ChainBlock;foldername=nothing) where N
+    qcf,pos = generate_annotate_circuit(res,qc;color = "transparent")
+    filename = nothing
+    (foldername === nothing) || (filename = "$foldername/0.png")
+    annotate_circuit(qcf;filename)
+    for i in 1:length(pos)
+        qcf[pos[i]] = replace_block_color(qcf[pos[i]],"red")
+        (foldername === nothing) || (filename = "$foldername/$i.png")
+        annotate_circuit(qcf;filename)
+    end
+end

@@ -1,0 +1,103 @@
+# CHANGELOG
+
+<!-- version list -->
+
+## v0.8.0 (2026-03-09)
+
+### Breaking Changes
+
+- Support for Stim v1.11 is discontinued. Minimal supported Stim version is v1.12.
+
+### Bug Fixes
+
+- Do not use isinstance checks in dem parser ([#237](https://github.com/Deltakit/deltakit/pull/237),
+  [`eed7123`](https://github.com/Deltakit/deltakit/commit/eed7123bf4c806574e61405de813a15644cac4a2))
+
+- Numpy dimension issue in error budget ([#236](https://github.com/Deltakit/deltakit/pull/236),
+  [`7b6eb37`](https://github.com/Deltakit/deltakit/commit/7b6eb3752c63b368385d7cf801dc8cac52deeb7c))
+
+- Picklable Coordinate ([#239](https://github.com/Deltakit/deltakit/pull/239),
+  [`d78fdc0`](https://github.com/Deltakit/deltakit/commit/d78fdc0ac270447fe87cf7a5ef9b8ad4792e9039))
+
+### Documentation
+
+- Document mutation in compilation functions ([#209](https://github.com/Deltakit/deltakit/pull/209),
+  [`d559a1a`](https://github.com/Deltakit/deltakit/commit/d559a1a76e68debe1803d7dfee7eee2dba042b50))
+
+### Features
+
+- Generic Plotting Framework for Lambda and LEPPR Results
+  ([#227](https://github.com/Deltakit/deltakit/pull/227),
+  [`da36a8a`](https://github.com/Deltakit/deltakit/commit/da36a8a10bbb472cc69adc27662b426d0f69f4a6))
+
+- Refactor draw patch ([#225](https://github.com/Deltakit/deltakit/pull/225),
+  [`b555ea5`](https://github.com/Deltakit/deltakit/commit/b555ea5f24848acd8d8bbcea985e3844d7fdf663))
+
+
+## v0.7.1 (2026-02-10)
+
+### Features
+
+- Fix dependencies of deltakit subpackages.
+
+
+## v0.7.0 (2026-02-10)
+
+### Features
+
+- Implement error-budgeting ([#76](https://github.com/Deltakit/deltakit/pull/76),
+  [`d624a98`](https://github.com/Deltakit/deltakit/commit/d624a98a156252a3ddeaf9bd69bec5a418d942af))
+
+
+## v0.6.2 (2026-01-29)
+
+### Bug Fixes
+
+- Fix failing docs build on ReadTheDocs.
+
+### Features
+
+- Include deltakit-compile into release process.
+
+## v0.6.1 (2026-01-29)
+
+### Bug Fixes
+
+- Make NoiseParameters fields keyword-only ([#194](https://github.com/Deltakit/deltakit/pull/194),
+  [`ffc27b2`](https://github.com/Deltakit/deltakit/commit/ffc27b291de2035cfd4b9dd68649b8fb6235a6e4))
+
+- Remove remaining references to pixi ([#195](https://github.com/Deltakit/deltakit/pull/195),
+  [`1d8707d`](https://github.com/Deltakit/deltakit/commit/1d8707d4b50d2128d9e2402d97ab6aa3adc805e7))
+
+### Features
+
+- Deltakit compiler init ([#201](https://github.com/Deltakit/deltakit/pull/201),
+  [`2441109`](https://github.com/Deltakit/deltakit/commit/2441109d543c8642d26d6874c35786f7f5b6650d))
+
+- More re-exports in deltakit_core and bump patch version
+  ([#200](https://github.com/Deltakit/deltakit/pull/200),
+  [`0ba8885`](https://github.com/Deltakit/deltakit/commit/0ba888593f2e5a7b3314df7b729ff2124071278d))
+
+- Update CONTRIBUTION and RELEASE ([#202](https://github.com/Deltakit/deltakit/pull/202),
+  [`a259307`](https://github.com/Deltakit/deltakit/commit/a259307a57c42e05c434df12ae83aa2093a8ef4d))
+
+
+## v0.5.1 (2025-09-17)
+
+### Bug Fixes
+
+- Add the Client class to the re-exports in deltakit
+  ([#11](https://github.com/Deltakit/deltakit/pull/11),
+  [`1df3056`](https://github.com/Deltakit/deltakit/commit/1df3056fd06bcb65052bb8adb82f31b69ffd5b46))
+
+### Documentation
+
+- Add Deltakit component images to README ([#8](https://github.com/Deltakit/deltakit/pull/8),
+  [`5d41e7d`](https://github.com/Deltakit/deltakit/commit/5d41e7d6c8feb9800cf073d3524f317fe4084108))
+
+
+## v0.5.0 (2025-09-16)
+
+### Features
+
+- Initial Public Release
