@@ -97,3 +97,5 @@ Thumbs.db
 logs/
 tmp/
 temp/
+
+.cursor/*
