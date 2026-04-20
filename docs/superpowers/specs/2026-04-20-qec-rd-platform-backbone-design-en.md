@@ -15,6 +15,7 @@ This design focuses on the first-stage goals:
 - Rebuild and absorb the core local scientific capabilities of DeltaKit inside `qec_rd`.
 - Support two first-class entry modes: built-in code-driven circuit generation and external circuit import.
 - Include both MWPM and BP+OSD in the implementation and acceptance targets, while relying on standard external decoder packages instead of re-implementing decoder algorithms in-repo.
+- Allow user-supplied custom decoders to plug into the same end-to-end platform chain instead of living as isolated offline utilities.
 
 ## 2. First-Stage Scope Boundary
 
@@ -27,6 +28,7 @@ This design focuses on the first-stage goals:
 - DEM extraction from circuits and construction of a standard decoding graph
 - At least one MWPM decoding path
 - At least one BP+OSD decoding path
+- Support custom decoder integration into the standard `run_decoder(...) -> DecodeResult -> AnalysisReport` chain
 - Basic logical error rate computation, batch statistics, and core experiment analysis
 - An import-oriented workflow for future research on new codes and new code circuits
 
@@ -74,6 +76,7 @@ The first stage adopts a "platform backbone + Stim-only backend" structure. No m
 - Every executable loop in the first stage must rely only on `stim` as the low-level execution capability.
 - The public inputs and outputs of `kernel.graph`, `kernel.decode`, and `kernel.analysis` must not expose raw `stim.Circuit` or raw `stim.DetectorErrorModel` as the platform language.
 - DeltaKit is the capability benchmark, not the runtime dependency that defines the platform backbone.
+- Extensibility points must be defined in terms of platform-standard objects, not by bypassing the backbone and passing arbitrary backend-native objects through the system.
 
 ## 4. Package Structure and Responsibilities
 
@@ -126,6 +129,7 @@ Responsible for the decoder invocation workflow, but not for implementing decode
 
 - Standardize decoder inputs
 - Integrate external decoders
+- Integrate user-defined custom decoders
 - Normalize decoder outputs
 - Standardize decoder failures, parameters, and exceptions
 
@@ -275,6 +279,7 @@ In the first stage, the responsibility of `qec_rd` is to:
 - Convert `DecodingGraph` and `SyndromeBatch` into the forms required by external packages
 - Normalize outputs into `DecodeResult`
 - Handle parameters, exceptions, and result aggregation
+- Provide the same standard input/output contract for user-defined custom decoders
 
 In the first stage, `qec_rd` does not take responsibility for:
 
@@ -287,6 +292,38 @@ In the first stage, `qec_rd` does not take responsibility for:
 - MWPM and BP+OSD should be exposed through a unified high-level decoder entry
 - Both decoder families should emit the same `DecodeResult` type
 - Both decoder families should participate in the same downstream analysis workflow
+- Custom decoders should also plug into the same high-level entry; their inputs should be based at minimum on `DecodingGraph` and `SyndromeBatch`, and their outputs must normalize into `DecodeResult`
+
+## 8A. Customization Points
+
+Even though the first stage does not introduce a multi-backend/provider architecture, it should still expose several platform-internal customization points to support research exploration.
+
+### 8A.1 Required customization points
+
+- Circuit entry
+  The platform must support both generated circuits and imported external circuits.
+- Decoder entry
+  The platform must support both standard external-package decoders and user-defined custom decoders.
+
+### 8A.2 Recommended customization points
+
+- `CodeSpec` extension
+  Future code families, schedule parameters, and experiment metadata should be addable without breaking the backbone.
+- `NoiseModel` extension
+  Future leakage, correlated-noise, and hardware-calibrated parameters should fit the same model family.
+- DEM / graph construction strategy
+  The platform should allow future variants in DEM annotation, filtering, edge-weight logic, and graph/hypergraph construction, while still normalizing outputs into `DemArtifact` and `DecodingGraph`.
+- Runtime data entry
+  Although Stage 1 is centered on Stim sampling, `SyndromeBatch` should be able to admit future external experiment data or hardware-returned data.
+- Analysis layer
+  Future threshold sweeps, error budgets, and resource-estimation logic should be able to build on `AnalysisReport` without changing the earlier object chain.
+
+### 8A.3 Areas that should not be opened as customization points in Stage 1
+
+- Execution backend
+  Stage 1 remains fixed to `stim`.
+- General provider/plugin systems
+  Stage 1 should not introduce a generic plugin mechanism; it should keep only clear and lightweight extension boundaries.
 
 ## 9. First-Stage Implementation Waves
 
@@ -372,6 +409,13 @@ The first stage must at least align with the following categories of local scien
 
 - `qec_rd` must not copy MWPM or BP+OSD algorithm implementations into the backbone
 - Decoders must be used as adapted external packages, not as reimplemented internal algorithms
+
+### 10.7A Custom Decoder Acceptance
+
+- The platform must allow a user-defined custom decoder to join the standard high-level decoding entry
+- The input contract of a custom decoder must be based at minimum on `DecodingGraph` and `SyndromeBatch`
+- The output of a custom decoder must normalize into `DecodeResult`
+- The result of a custom decoder must continue into `AnalysisReport` generation without a separate side workflow
 
 ### 10.8 Thin-API Acceptance
 
