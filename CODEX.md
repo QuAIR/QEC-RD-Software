@@ -28,19 +28,20 @@ Stage 1 means:
 - `stim` is the only execution backend in Stage 1.
 - Do not introduce a general multi-provider or multi-backend abstraction yet.
 
-### Built-in code support
+### Built-in circuit catalog support
 
-Stage 1 built-in code families must include:
+Stage 1 built-in circuit entries must include:
 
+- repetition code
 - rotated surface code
 - unrotated surface code
 - toric code
 
 In addition:
 
-- users must be able to define arbitrary codes
-- users must be able to define arbitrary CSS codes
-- the system must support generating a simple stabilizer measurement circuit from CSS code information
+- `CodeSpec` should act as a built-in circuit selector/config object, not as a general user-defined code-definition interface
+- user-facing research entry should center on circuits: generated built-in circuits or imported external circuits
+- the built-in catalog should be extensible so future built-in families can be added without changing the backbone
 
 ### Noise model
 
@@ -72,6 +73,7 @@ Decoder rules:
 ### Data-entry policy
 
 - circuit entry must support both generated circuits and imported circuits
+- Stage 1 public API should expose both the direct pipeline API and a DeltaKit-style runner API
 - `SyndromeBatch` should remain open to future external data-entry paths
 - analysis should remain extensible for future research workflows
 
@@ -84,6 +86,7 @@ Stage 1 work should align with the approved backbone:
 - `qec_rd.kernel.circuit`
 - `qec_rd.kernel.graph`
 - `qec_rd.kernel.decode`
+- `qec_rd.kernel.runner`
 - `qec_rd.kernel.analysis`
 - `qec_rd.api`
 
@@ -109,7 +112,7 @@ During implementation:
 Every substantive Stage 1 change should strengthen one or more of these:
 
 - core object model tests
-- code generation tests
+- built-in circuit generation tests
 - imported circuit tests
 - DEM / graph tests
 - MWPM decoder adapter tests

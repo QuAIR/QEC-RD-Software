@@ -26,8 +26,9 @@ When working in this repository, agents should optimize for:
 Agents must assume the following unless explicitly told otherwise:
 
 - backend is only `stim`
-- built-in code targets include rotated surface, unrotated surface, and toric
-- arbitrary CSS-code-based simple stabilizer measurement circuit generation is in scope
+- built-in circuit-catalog targets include repetition, rotated surface, unrotated surface, and toric
+- user-facing customization happens through circuit import and downstream analysis/decoder hooks, not arbitrary code-definition input
+- Stage 1 should expose both the direct pipeline API and a DeltaKit-style runner API
 - non-Pauli noise is out of scope
 - DEM / graph behavior is fixed and platform-owned
 - decoders come from external packages or custom decoder hooks
@@ -52,6 +53,7 @@ Each agent task should ideally own one clear responsibility, such as:
 
 - object model
 - code generation
+- experiment runner orchestration
 - DEM / graph path
 - MWPM adapter
 - BP+OSD adapter
@@ -75,7 +77,8 @@ Minimum expectation:
 These are good task slices for separate agents:
 
 - `core` model and type work
-- built-in code generation and CSS-code circuit generation
+- built-in circuit catalog generation
+- experiment runner orchestration
 - circuit import support
 - DEM extraction and fixed graph construction
 - MWPM integration via `pymatching`
@@ -129,7 +132,7 @@ Agents should stop and ask before proceeding if they discover a need to:
 - expand Stage 1 to non-Pauli runtime behavior
 - make DEM / graph logic user-customizable
 - introduce a plugin/provider framework
-- change the agreed built-in code scope
+- change the agreed built-in circuit-catalog scope
 - replace external decoder packages with in-repo implementations
 - change the public object chain materially
 
@@ -139,7 +142,7 @@ Agents in this repo should:
 
 - implement the Stage 1 backbone, not reinvent the roadmap
 - keep `stim` as the only runtime backend
-- support built-in surface/toric plus user-defined CSS-code generation
+- support built-in repetition/surface/toric circuit generation plus imported circuits
 - use external decoder packages
 - keep DEM / graph logic fixed in Stage 1
 - preserve end-to-end flow

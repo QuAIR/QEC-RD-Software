@@ -13,9 +13,10 @@ This design focuses on the first-stage goals:
 - Establish a platform-owned unified object model and end-to-end workflow in `qec_rd`.
 - Use `stim` as the only execution backend in the first stage.
 - Rebuild and absorb the core local scientific capabilities of DeltaKit inside `qec_rd`.
-- Support two first-class entry modes: built-in code-driven circuit generation and external circuit import.
-- Include rotated surface code, unrotated surface code, and toric code as built-in code families.
-- Allow users to define arbitrary codes, especially arbitrary CSS codes, and generate simple stabilizer measurement circuits from code information.
+- Support two first-class entry modes: built-in circuit-catalog generation and external circuit import.
+- Include repetition code, rotated surface code, unrotated surface code, and toric code as built-in circuit-catalog entries.
+- Treat the code module as a built-in circuit database/selector: users choose built-in keys and parameters to generate circuits, while custom research inputs enter through circuit import.
+- Expose both the direct pipeline API and a DeltaKit-style runner API in Stage 1.
 - Include both MWPM and BP+OSD in the implementation and acceptance targets, while relying on standard external decoder packages instead of re-implementing decoder algorithms in-repo.
 - Allow user-supplied custom decoders to plug into the same end-to-end platform chain instead of living as isolated offline utilities.
 
@@ -26,15 +27,16 @@ This design focuses on the first-stage goals:
 - Circuit generation, import, execution, and sampling based on `stim`
 - A unified core object chain:
   `CodeSpec -> CircuitArtifact -> DemArtifact -> DecodingGraph -> SyndromeBatch -> DecodeResult -> AnalysisReport`
-- Built-in support for rotated surface code, unrotated surface code, and toric code
-- Support for user-provided code information, especially CSS-code information, to generate simple stabilizer measurement circuits
+- Built-in support for repetition code, rotated surface code, unrotated surface code, and toric code as generated circuit entries
+- A user-facing interaction model centered on generated or imported circuits, not arbitrary user-defined code definitions
 - A `NoiseModel` limited to Pauli-compatible noise that can actually run in `stim`
 - DEM extraction from circuits and construction of a standard decoding graph
 - At least one MWPM decoding path
 - At least one BP+OSD decoding path
 - Support custom decoder integration into the standard `run_decoder(...) -> DecodeResult -> AnalysisReport` chain
 - Basic logical error rate computation, batch statistics, and core experiment analysis
-- An import-oriented workflow for future research on new codes and new code circuits
+- An import-oriented workflow for future research on new circuits, schedules, and hardware-oriented circuit variants
+- A high-level orchestration layer based on `ExperimentConfig`, `ExperimentRunner`, and `ExperimentResult`
 
 ### 2.2 Explicitly Out of Scope for the First Stage
 
@@ -56,8 +58,10 @@ The first stage adopts a "platform backbone + Stim-only backend" structure. No m
 
 - `qec_rd.core`
   Platform-level core objects, types, exceptions, and result models
+- `qec_rd.kernel.runner`
+  Experiment orchestration kernel
 - `qec_rd.kernel.circuit`
-  Circuit and code-experiment kernel
+  Circuit and built-in circuit-catalog kernel
 - `qec_rd.kernel.graph`
   DEM and decoding-graph kernel
 - `qec_rd.kernel.decode`
@@ -79,6 +83,7 @@ The first stage adopts a "platform backbone + Stim-only backend" structure. No m
 ### 3.3 Architectural Constraints
 
 - Every executable loop in the first stage must rely only on `stim` as the low-level execution capability.
+- The Stage 1 public API should expose both a composable pipeline surface and a higher-level runner surface.
 - The public inputs and outputs of `kernel.graph`, `kernel.decode`, and `kernel.analysis` must not expose raw `stim.Circuit` or raw `stim.DetectorErrorModel` as the platform language.
 - DeltaKit is the capability benchmark, not the runtime dependency that defines the platform backbone.
 - Extensibility points must be defined in terms of platform-standard objects, not by bypassing the backbone and passing arbitrary backend-native objects through the system.
@@ -92,6 +97,8 @@ This package carries the platform’s unified semantics and should contain at le
 
 - `codes.py`
   Defines `CodeSpec`
+- `experiments.py`
+  Defines `ExperimentConfig` and `ExperimentResult`
 - `artifacts.py`
   Defines `CircuitArtifact`, `DemArtifact`, and `DecodingGraph`
 - `noise.py`
@@ -112,15 +119,23 @@ This package is responsible only for bridging to `stim`, not for platform-level 
 
 ### 4.3 `qec_rd.kernel.circuit`
 
-Responsible for the circuit and code-experiment kernel:
+Responsible for the circuit and built-in circuit-catalog kernel:
 
-- Generate base code-family circuits from `CodeSpec`
-- Generate circuits from structured definitions of rotated surface code, unrotated surface code, and toric code
-- Generate simple stabilizer measurement circuits from user-provided arbitrary CSS code information
+- Generate built-in catalog circuits from `CodeSpec`
+- Generate circuits from structured built-in definitions of repetition code, rotated surface code, unrotated surface code, and toric code
 - Import and wrap external circuits
 - Perform basic circuit validation
 - Organize annotations, coordinates, logical observables, and detector metadata
 - Orchestrate noise injection
+
+### 4.3A `qec_rd.kernel.runner`
+
+Responsible for the experiment orchestration shell:
+
+- Prepare a complete run from `ExperimentConfig`
+- Invoke the same circuit-to-analysis backbone used by the direct pipeline API
+- Aggregate circuit, sampling, decoding, and analysis outputs into `ExperimentResult`
+- Support single runs, benchmark-style execution, and sweep-style execution
 
 ### 4.4 `qec_rd.kernel.graph`
 
@@ -152,8 +167,11 @@ Responsible for the core research analysis layer:
 
 ### 4.7 `qec_rd.api`
 
-Must remain thin and stable, exposing only common local-research entry points:
+Must remain thin and stable, exposing both direct pipeline entry points and runner-style entry points:
 
+- `run_experiment(...)`
+- `benchmark(...)`
+- `sweep(...)`
 - `build_circuit(...)`
 - `load_circuit(...)`
 - `extract_dem(...)`
@@ -166,8 +184,10 @@ Must remain thin and stable, exposing only common local-research entry points:
 
 ### 5.1 Experiment-Intent Objects
 
+- `ExperimentConfig`
+  Aggregates the user-facing experiment definition, including generated/imported circuit input, noise, decoder, sampling, and analysis specifications.
 - `CodeSpec`
-  Describes the experiment definition: code family, distance, rounds, logical basis, schedule, layout, and related parameters.
+  Describes built-in circuit selection and generation parameters such as built-in family key, distance, rounds, logical basis, schedule variant, layout, and related metadata.
 - `NoiseModel`
   Describes Stim-executable Pauli-like noise, basic phenomenological noise, and basic physical noise parameters.
 
@@ -193,6 +213,8 @@ These objects describe what experiment should be run. They do not carry runtime 
   Records predicted logical flips, failure statistics, decoder information, and decoder configuration.
 - `AnalysisReport`
   Records logical error rate, parameter sweeps, confidence statistics, and core analysis conclusions.
+- `ExperimentResult`
+  Aggregates `ExperimentConfig`, the produced circuit-level artifacts, runtime data, decode outputs, and analysis outputs into a single user-facing experiment result object.
 
 ### 5.5 Object Constraints
 
@@ -204,7 +226,7 @@ These objects describe what experiment should be run. They do not carry runtime 
 
 ## 6. Dual-Entry Requirement for `CircuitArtifact`
 
-`CircuitArtifact` must not serve only built-in code generation. It must also serve as the unified platform circuit entry point for external circuit import.
+`CircuitArtifact` must not serve only built-in circuit-catalog generation. It must also serve as the unified platform circuit entry point for external circuit import.
 
 ### 6.1 Generated Entry
 
@@ -240,6 +262,15 @@ The design must also reserve room for future import of:
 
 ## 7. End-to-End First-Stage Data Flow
 
+### 7.0 Two Public API Layers
+
+Stage 1 should expose two compatible public surfaces:
+
+- Direct pipeline API
+  For advanced users who want explicit control over each artifact transition.
+- Runner API
+  For users who want a DeltaKit-like workflow centered on `ExperimentConfig -> ExperimentRunner -> ExperimentResult`.
+
 ### 7.1 Two Entry Modes
 
 - Generated entry:
@@ -256,6 +287,15 @@ Once a circuit enters the system as a `CircuitArtifact`, the downstream flow is 
 - `sample_syndromes(CircuitArtifact, ...) -> SyndromeBatch`
 - `run_decoder(DecodingGraph, SyndromeBatch, ...) -> DecodeResult`
 - `analyze_results(...) -> AnalysisReport`
+
+### 7.2A Runner-Orchestrated Flow
+
+The higher-level runner path should wrap the same main chain:
+
+- `ExperimentConfig -> ExperimentRunner.prepare(...)`
+- `ExperimentRunner.run(...)`
+- internal execution through the standard circuit-to-analysis pipeline
+- `ExperimentRunner.collect_result(...) -> ExperimentResult`
 
 ### 7.3 Responsibility of Each Stage
 
@@ -316,7 +356,7 @@ Even though the first stage does not introduce a multi-backend/provider architec
 ### 8A.2 Recommended customization points
 
 - `CodeSpec` extension
-  Future code families, schedule parameters, and experiment metadata should be addable without breaking the backbone; Stage 1 should at minimum cover rotated surface, unrotated surface, toric, and user-defined CSS codes.
+  Future built-in circuit families, schedule parameters, and experiment metadata should be addable without breaking the backbone; Stage 1 should at minimum cover repetition, rotated surface, unrotated surface, and toric entries.
 - `NoiseModel` extension
   Future Stim-supported Pauli-like and hardware-calibrated parameters should fit the same model family, but Stage 1 should not include non-Pauli noise.
 - Runtime data entry
@@ -347,7 +387,7 @@ Even though the first stage does not introduce a multi-backend/provider architec
 - Implement `load_circuit(...)`
 - Support `stim.Circuit`
 - Support `.stim` files
-- Support at least one base code family with a memory experiment
+- Support at least one base built-in circuit entry with a memory experiment
 
 ### Wave 2: Open the DEM and Decoding-Graph Main Chain
 
@@ -393,8 +433,8 @@ Even though the first stage does not introduce a multi-backend/provider architec
 The first stage must at least align with the following categories of local scientific capability:
 
 - Circuit generation and import
-- Built-in rotated surface, unrotated surface, and toric codes
-- User-defined CSS code to simple stabilizer measurement circuit generation
+- Built-in repetition, rotated surface, unrotated surface, and toric circuit generation
+- Imported external circuits as the customization path for user-designed code circuits
 - Stim-driven sampling
 - DEM and graph construction
 - Basic local decoding
@@ -429,8 +469,14 @@ The first stage must at least align with the following categories of local scien
 
 ### 10.8 Thin-API Acceptance
 
-- A user should be able to complete a basic local QEC research experiment through a small set of `qec_rd.api` entry points
+- A user should be able to complete a basic local QEC research experiment through either the direct pipeline API or the runner API exposed in `qec_rd.api`
 - A user should not need to manipulate Stim-native objects directly
+
+### 10.9 Runner-API Acceptance
+
+- Stage 1 must provide `ExperimentConfig`, `ExperimentRunner`, and `ExperimentResult`
+- Stage 1 must expose `run_experiment(...)`, `benchmark(...)`, and `sweep(...)` in `qec_rd.api`
+- The runner path must internally reuse the same backbone artifacts and pipeline semantics as the direct pipeline API
 
 ## 11. Platform State After First-Stage Completion
 
@@ -439,6 +485,7 @@ If the first stage described here is implemented successfully, the platform shou
 - It is no longer just a Stim demo
 - It has its own `qec_rd`-owned unified core object system
 - It can already carry the essential local scientific backbone of DeltaKit
-- It supports both built-in code-driven circuits and imported external Stim circuits
+- It supports both built-in catalog-driven circuits and imported external Stim circuits
+- It supports both a direct pipeline API and a DeltaKit-style runner API
 - It supports two common local decoding paths: MWPM and BP+OSD
-- It leaves behind a stable backbone for later expansion into more code families, richer noise models, TensorQEC-related capabilities, and engineering-oriented features
+- It leaves behind a stable backbone for later expansion into more built-in circuit families, richer noise models, TensorQEC-related capabilities, and engineering-oriented features

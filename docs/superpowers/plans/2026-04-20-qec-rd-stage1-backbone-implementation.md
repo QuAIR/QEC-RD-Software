@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build the first-stage `qec_rd` platform backbone on top of `stim`, with unified core objects, generated/imported circuit entry points, built-in rotated/unrotated surface and toric code support, simple CSS-code-driven stabilizer measurement circuit generation, fixed DEM-to-graph conversion, Stim sampling, MWPM decoding through `pymatching`, BP+OSD decoding through `ldpc`, custom decoder integration hooks, and basic analysis.
+**Goal:** Build the first-stage `qec_rd` platform backbone on top of `stim`, with unified core objects, generated/imported circuit entry points, a built-in circuit catalog covering repetition, rotated surface, unrotated surface, and toric code circuits, a DeltaKit-style orchestration layer based on `ExperimentConfig`, `ExperimentRunner`, and `ExperimentResult`, fixed DEM-to-graph conversion, Stim sampling, MWPM decoding through `pymatching`, BP+OSD decoding through `ldpc`, custom decoder integration hooks, and basic analysis.
 
-**Architecture:** Keep `stim` as the only runtime backend and implement the platform logic inside `qec_rd`. The package structure follows the approved backbone design: `core` for stable objects, `adapters.stim` for backend conversion, `kernel.*` for circuit/graph/decode/analysis logic, and `api` as a thin public surface. The implementation should first stabilize the object model and code/circuit entry, then add built-in surface/toric and CSS-driven circuit generation, then open the fixed DEM/graph chain, then add MWPM and BP+OSD decoding plus custom-decoder hooks, and finally close the loop with analysis and integration tests.
+**Architecture:** Keep `stim` as the only runtime backend and implement the platform logic inside `qec_rd`. The package structure follows the approved backbone design: `core` for stable objects, `adapters.stim` for backend conversion, `kernel.*` for circuit/graph/decode/analysis logic, `kernel.runner` for experiment orchestration, and `api` as a thin public surface. Stage 1 should expose both the direct pipeline API and a DeltaKit-style runner API. The implementation should first stabilize the object model and code/circuit entry, then add the built-in circuit catalog plus imported-circuit support, then open the fixed DEM/graph chain, then add MWPM and BP+OSD decoding plus custom-decoder hooks, and finally add runner orchestration, analysis, and integration tests.
 
 **Tech Stack:** Python 3.10+, `stim`, `numpy`, `scipy`, `pytest`, `pymatching`, `ldpc`
 
@@ -19,7 +19,9 @@
 - `src/qec_rd/core/__init__.py`
   Re-exports the core platform objects.
 - `src/qec_rd/core/codes.py`
-  Defines `CodeSpec` and code-description structures for built-in and CSS-driven circuit generation.
+  Defines `CodeSpec` and built-in circuit-catalog selector structures.
+- `src/qec_rd/core/experiments.py`
+  Defines `ExperimentConfig` and `ExperimentResult`.
 - `src/qec_rd/core/noise.py`
   Defines a Stim-compatible Pauli-noise `NoiseModel`.
 - `src/qec_rd/core/artifacts.py`
@@ -35,11 +37,13 @@
 - `src/qec_rd/kernel/__init__.py`
   Package marker for kernel modules.
 - `src/qec_rd/kernel/circuit.py`
-  Generated/imported circuit entry logic, including built-in surface/toric support and CSS-driven stabilizer measurement circuits.
+  Generated/imported circuit entry logic, including the built-in circuit catalog for repetition/surface/toric families.
 - `src/qec_rd/kernel/graph.py`
   DEM extraction and decoding graph construction.
 - `src/qec_rd/kernel/decode.py`
   External decoder adaptation for MWPM, BP+OSD, and custom decoders.
+- `src/qec_rd/kernel/runner.py`
+  Experiment orchestration based on `ExperimentConfig` and the standard pipeline backbone.
 - `src/qec_rd/kernel/analysis.py`
   Basic logical error rate and batch analysis.
 
@@ -59,9 +63,9 @@
 - `tests/test_circuit_entry.py`
   Generated and imported circuit entry tests.
 - `tests/test_builtin_codes.py`
-  Built-in rotated/unrotated surface and toric code circuit tests.
-- `tests/test_css_codegen.py`
-  User-defined CSS-code circuit generation tests.
+  Built-in repetition/rotated/unrotated surface and toric circuit tests.
+- `tests/test_builtin_catalog.py`
+  Built-in circuit-catalog selector and validation tests.
 - `tests/test_dem_graph.py`
   DEM extraction and graph construction tests.
 - `tests/test_sampling.py`
@@ -74,10 +78,14 @@
   Custom decoder end-to-end tests.
 - `tests/test_analysis.py`
   Analysis object and logical error rate tests.
+- `tests/test_experiment_runner.py`
+  Runner API tests for `run_experiment`, `benchmark`, and `sweep`.
 - `tests/integration/test_generated_pipeline.py`
   Generated-circuit end-to-end pipeline test.
 - `tests/integration/test_imported_pipeline.py`
   Imported-circuit end-to-end pipeline test.
+- `tests/integration/test_runner_pipeline.py`
+  Runner-based end-to-end pipeline test.
 
 ---
 
@@ -103,10 +111,12 @@ def test_stage1_modules_are_importable():
     modules = [
         "qec_rd.api",
         "qec_rd.core",
+        "qec_rd.core.experiments",
         "qec_rd.adapters.stim",
         "qec_rd.kernel.circuit",
         "qec_rd.kernel.graph",
         "qec_rd.kernel.decode",
+        "qec_rd.kernel.runner",
         "qec_rd.kernel.analysis",
     ]
     for module_name in modules:
@@ -163,7 +173,7 @@ __version__ = "0.1.0"
 
 ```python
 # src/qec_rd/api.py
-"""Thin Stage 1 public API."""
+"""Thin Stage 1 public API exposing pipeline and runner entry points."""
 ```
 
 ```python
@@ -202,6 +212,11 @@ __version__ = "0.1.0"
 ```
 
 ```python
+# src/qec_rd/kernel/runner.py
+"""Experiment runner orchestration logic."""
+```
+
+```python
 # src/qec_rd/kernel/analysis.py
 """Analysis logic."""
 ```
@@ -215,7 +230,7 @@ Expected: PASS with `1 passed`.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add pyproject.toml src/qec_rd/__init__.py src/qec_rd/api.py src/qec_rd/core/__init__.py src/qec_rd/adapters/__init__.py src/qec_rd/adapters/stim.py src/qec_rd/kernel/__init__.py src/qec_rd/kernel/circuit.py src/qec_rd/kernel/graph.py src/qec_rd/kernel/decode.py src/qec_rd/kernel/analysis.py tests/test_backbone_imports.py
+git add pyproject.toml src/qec_rd/__init__.py src/qec_rd/api.py src/qec_rd/core/__init__.py src/qec_rd/core/experiments.py src/qec_rd/adapters/__init__.py src/qec_rd/adapters/stim.py src/qec_rd/kernel/__init__.py src/qec_rd/kernel/circuit.py src/qec_rd/kernel/graph.py src/qec_rd/kernel/decode.py src/qec_rd/kernel/runner.py src/qec_rd/kernel/analysis.py tests/test_backbone_imports.py
 git commit -m "build: scaffold stage1 backbone modules"
 ```
 
@@ -226,6 +241,7 @@ git commit -m "build: scaffold stage1 backbone modules"
 **Files:**
 - Create: `src/qec_rd/core/types.py`
 - Create: `src/qec_rd/core/codes.py`
+- Create: `src/qec_rd/core/experiments.py`
 - Create: `src/qec_rd/core/noise.py`
 - Create: `src/qec_rd/core/artifacts.py`
 - Create: `src/qec_rd/core/results.py`
@@ -246,6 +262,8 @@ from qec_rd.core import (
     CodeSpec,
     DecodeResult,
     DecodingGraph,
+    ExperimentConfig,
+    ExperimentResult,
     NoiseModel,
     SyndromeBatch,
 )
@@ -254,6 +272,7 @@ from qec_rd.core import (
 def test_core_objects_capture_stage1_metadata():
     code = CodeSpec(family="repetition_code:memory", distance=3, rounds=3)
     noise = NoiseModel(after_clifford_depolarization=1e-3)
+    config = ExperimentConfig(code_spec=code, noise_spec=noise, decoder_spec={"name": "pymatching"})
     circuit = CircuitArtifact(
         source_kind=CircuitSourceKind.GENERATED,
         source_format="stim",
@@ -297,8 +316,16 @@ def test_core_objects_capture_stage1_metadata():
         logical_error_rate_stderr=0.0,
         metadata={"kind": "unit"},
     )
+    experiment = ExperimentResult(
+        config=config,
+        circuit=circuit,
+        syndrome_batch=batch,
+        decode_result=result,
+        analysis_report=report,
+    )
 
     assert circuit.code_spec == code
+    assert experiment.config == config
     assert noise.after_clifford_depolarization == 1e-3
     assert graph.check_matrix.shape == (3, 2)
     assert batch.shot_count == 4
@@ -504,21 +531,21 @@ Expected: PASS with `1 passed`.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/qec_rd/core/__init__.py src/qec_rd/core/types.py src/qec_rd/core/codes.py src/qec_rd/core/noise.py src/qec_rd/core/artifacts.py src/qec_rd/core/results.py tests/test_core_models.py
+git add src/qec_rd/core/__init__.py src/qec_rd/core/types.py src/qec_rd/core/codes.py src/qec_rd/core/experiments.py src/qec_rd/core/noise.py src/qec_rd/core/artifacts.py src/qec_rd/core/results.py tests/test_core_models.py
 git commit -m "feat(core): add stage1 object model"
 ```
 
 ---
 
-### Task 2A: Built-In Code Families and CSS CodeSpec Shapes
+### Task 2A: Built-In Circuit Catalog and `CodeSpec` Shapes
 
 **Files:**
 - Modify: `src/qec_rd/core/codes.py`
 - Modify: `src/qec_rd/core/__init__.py`
 - Test: `tests/test_builtin_codes.py`
-- Test: `tests/test_css_codegen.py`
+- Test: `tests/test_builtin_catalog.py`
 
-- [ ] **Step 1: Write the failing built-in-code and CSS-shape tests**
+- [ ] **Step 1: Write the failing built-in-catalog tests**
 
 ```python
 # tests/test_builtin_codes.py
@@ -526,42 +553,46 @@ from qec_rd.core import CodeSpec
 
 
 def test_codespec_supports_stage1_builtin_code_families():
+    repetition = CodeSpec(family="repetition_code:memory", distance=3, rounds=3)
     rotated = CodeSpec(family="rotated_surface_code", distance=3, rounds=3)
     unrotated = CodeSpec(family="unrotated_surface_code", distance=3, rounds=3)
     toric = CodeSpec(family="toric_code", distance=4, rounds=4)
 
+    assert repetition.family == "repetition_code:memory"
     assert rotated.family == "rotated_surface_code"
     assert unrotated.family == "unrotated_surface_code"
     assert toric.family == "toric_code"
 ```
 
 ```python
-# tests/test_css_codegen.py
-import numpy as np
+# tests/test_builtin_catalog.py
+import pytest
 
 from qec_rd.core import CodeSpec
 
 
-def test_codespec_accepts_user_defined_css_code_information():
-    hx = np.array([[1, 1, 0, 0], [0, 0, 1, 1]], dtype=np.uint8)
-    hz = np.array([[1, 0, 1, 0], [0, 1, 0, 1]], dtype=np.uint8)
+def test_codespec_is_limited_to_stage1_builtin_catalog_entries():
     code = CodeSpec(
-        family="css_code",
-        distance=2,
-        rounds=2,
-        metadata={"hx": hx, "hz": hz, "name": "toy_css"},
+        family="rotated_surface_code",
+        distance=3,
+        rounds=3,
+        metadata={"variant": "memory_z"},
     )
 
-    assert code.family == "css_code"
-    assert code.metadata["hx"].shape == (2, 4)
-    assert code.metadata["hz"].shape == (2, 4)
+    assert code.family == "rotated_surface_code"
+    assert code.metadata["variant"] == "memory_z"
+
+
+def test_codespec_rejects_unknown_custom_family():
+    with pytest.raises(ValueError):
+        CodeSpec(family="my_custom_code", distance=3, rounds=3)
 ```
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `pytest tests/test_builtin_codes.py tests/test_css_codegen.py -v`
+Run: `pytest tests/test_builtin_codes.py tests/test_builtin_catalog.py -v`
 
-Expected: FAIL because `CodeSpec` is still only being exercised for the repetition-code path and does not yet document Stage 1 built-in families or CSS-oriented metadata expectations.
+Expected: FAIL because `CodeSpec` is still only being exercised for the repetition-code path and does not yet enforce the Stage 1 built-in circuit catalog.
 
 - [ ] **Step 3: Tighten `CodeSpec` for Stage 1 code coverage**
 
@@ -573,6 +604,16 @@ from dataclasses import dataclass, field
 from typing import Any
 
 
+SUPPORTED_STAGE1_BUILTIN_FAMILIES = frozenset(
+    {
+        "repetition_code:memory",
+        "rotated_surface_code",
+        "unrotated_surface_code",
+        "toric_code",
+    }
+)
+
+
 @dataclass(frozen=True, slots=True)
 class CodeSpec:
     family: str
@@ -580,6 +621,10 @@ class CodeSpec:
     rounds: int
     logical_basis: str = "Z"
     metadata: dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        if self.family not in SUPPORTED_STAGE1_BUILTIN_FAMILIES:
+            raise ValueError(f"Unsupported Stage 1 built-in family: {self.family!r}")
 ```
 
 ```python
@@ -615,15 +660,15 @@ __all__ = [
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
-Run: `pytest tests/test_builtin_codes.py tests/test_css_codegen.py -v`
+Run: `pytest tests/test_builtin_codes.py tests/test_builtin_catalog.py -v`
 
-Expected: PASS with `2 passed`.
+Expected: PASS with `3 passed`.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/qec_rd/core/codes.py src/qec_rd/core/__init__.py tests/test_builtin_codes.py tests/test_css_codegen.py
-git commit -m "test(core): cover stage1 builtin code families and css metadata"
+git add src/qec_rd/core/codes.py src/qec_rd/core/__init__.py tests/test_builtin_codes.py tests/test_builtin_catalog.py
+git commit -m "test(core): cover stage1 builtin circuit catalog"
 ```
 
 ---
@@ -676,28 +721,15 @@ def test_load_circuit_accepts_stim_object_and_file(tmp_path: Path):
 
 
 def test_build_circuit_supports_builtin_surface_and_toric_families():
+    repetition = build_circuit(CodeSpec(family="repetition_code:memory", distance=3, rounds=3))
     rotated = build_circuit(CodeSpec(family="rotated_surface_code", distance=3, rounds=3))
     unrotated = build_circuit(CodeSpec(family="unrotated_surface_code", distance=3, rounds=3))
     toric = build_circuit(CodeSpec(family="toric_code", distance=4, rounds=4))
 
+    assert isinstance(repetition.raw_handle, stim.Circuit)
     assert isinstance(rotated.raw_handle, stim.Circuit)
     assert isinstance(unrotated.raw_handle, stim.Circuit)
     assert isinstance(toric.raw_handle, stim.Circuit)
-
-
-def test_build_circuit_supports_user_defined_css_code():
-    code = CodeSpec(
-        family="css_code",
-        distance=2,
-        rounds=2,
-        metadata={
-            "hx": [[1, 1, 0, 0], [0, 0, 1, 1]],
-            "hz": [[1, 0, 1, 0], [0, 1, 0, 1]],
-        },
-    )
-    artifact = build_circuit(code)
-    assert isinstance(artifact.raw_handle, stim.Circuit)
-    assert "MPP" in str(artifact.raw_handle)
 ```
 
 - [ ] **Step 2: Run the tests to verify they fail**
@@ -714,7 +746,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import numpy as np
 import stim
 
 from qec_rd.core import CircuitArtifact, CircuitSourceKind, CodeSpec, NoiseModel, UnsupportedCircuitFormatError
@@ -732,46 +763,18 @@ def _stim_generated_name(family: str) -> str:
     return mapping[family]
 
 
-def _build_simple_css_measurement_circuit(code_spec: CodeSpec) -> stim.Circuit:
-    hx = np.asarray(code_spec.metadata["hx"], dtype=np.uint8)
-    hz = np.asarray(code_spec.metadata["hz"], dtype=np.uint8)
-    num_qubits = hx.shape[1]
-    circuit = stim.Circuit()
-    circuit.append("R", range(num_qubits))
-    for _ in range(code_spec.rounds):
-        for row in hx:
-            targets = [index for index, value in enumerate(row) if value]
-            if targets:
-                circuit.append("MPP", [stim.target_x(index) for index in targets])
-                circuit.append("DETECTOR", [stim.target_rec(-1)])
-        for row in hz:
-            targets = [index for index, value in enumerate(row) if value]
-            if targets:
-                circuit.append("MPP", [stim.target_z(index) for index in targets])
-                circuit.append("DETECTOR", [stim.target_rec(-1)])
-        circuit.append("TICK")
-    circuit.append("MPP", [stim.target_z(0)])
-    circuit.append("OBSERVABLE_INCLUDE", [stim.target_rec(-1)], 0)
-    return circuit
-
-
-def build_generated_stim_circuit(code_spec: CodeSpec, noise_model: NoiseModel | None) -> CircuitArtifact:
-    if code_spec.family == "css_code":
-        circuit = _build_simple_css_measurement_circuit(code_spec)
-        return CircuitArtifact(
-            source_kind=CircuitSourceKind.GENERATED,
-            source_format="stim",
-            code_spec=code_spec,
-            origin_metadata={"generator": "css_measurement_builder"},
-            raw_handle=circuit,
-        )
-
+def build_stim_generated_circuit(code_spec: CodeSpec, noise_model: NoiseModel | None) -> stim.Circuit:
     circuit = stim.Circuit.generated(
         _stim_generated_name(code_spec.family),
         distance=code_spec.distance,
         rounds=code_spec.rounds,
         after_clifford_depolarization=noise_model.after_clifford_depolarization if noise_model else 0.0,
     )
+    return circuit
+
+
+def build_generated_circuit_artifact(code_spec: CodeSpec, noise_model: NoiseModel | None) -> CircuitArtifact:
+    circuit = build_stim_generated_circuit(code_spec, noise_model)
     return CircuitArtifact(
         source_kind=CircuitSourceKind.GENERATED,
         source_format="stim",
@@ -1747,13 +1750,238 @@ git commit -m "feat(analysis): add stage1 reports and end-to-end tests"
 
 ---
 
+### Task 8A: Runner API and Experiment Orchestration
+
+**Files:**
+- Create: `src/qec_rd/core/experiments.py`
+- Create: `src/qec_rd/kernel/runner.py`
+- Modify: `src/qec_rd/core/__init__.py`
+- Modify: `src/qec_rd/api.py`
+- Test: `tests/test_experiment_runner.py`
+- Test: `tests/integration/test_runner_pipeline.py`
+
+- [ ] **Step 1: Write the failing runner tests**
+
+```python
+# tests/test_experiment_runner.py
+from qec_rd.api import benchmark, run_experiment, sweep
+from qec_rd.core import ExperimentConfig
+
+
+def test_run_experiment_returns_experiment_result():
+    config = ExperimentConfig(
+        code_spec={"family": "repetition_code:memory", "distance": 3, "rounds": 3},
+        noise_spec={"after_clifford_depolarization": 1e-3},
+        decoder_spec={"name": "pymatching"},
+        sim_spec={"shots": 8, "seed": 11},
+    )
+    result = run_experiment(config)
+    assert result.analysis_report.shot_count == 8
+    assert result.decode_result.decoder_name == "pymatching"
+
+
+def test_benchmark_returns_multiple_experiment_results():
+    config = ExperimentConfig(
+        code_spec={"family": "repetition_code:memory", "distance": 3, "rounds": 3},
+        decoder_spec={"name": "pymatching"},
+        sim_spec={"shots": 4, "seed": 1},
+    )
+    results = benchmark(config, repeats=2)
+    assert len(results) == 2
+
+
+def test_sweep_returns_results_for_each_value():
+    config = ExperimentConfig(
+        code_spec={"family": "repetition_code:memory", "distance": 3, "rounds": 3},
+        decoder_spec={"name": "pymatching"},
+        sim_spec={"shots": 4, "seed": 2},
+    )
+    results = sweep(config, "noise_spec.after_clifford_depolarization", [1e-4, 1e-3])
+    assert len(results) == 2
+```
+
+```python
+# tests/integration/test_runner_pipeline.py
+from qec_rd.api import run_experiment
+from qec_rd.core import ExperimentConfig
+
+
+def test_runner_pipeline_reuses_stage1_backbone():
+    config = ExperimentConfig(
+        code_spec={"family": "repetition_code:memory", "distance": 3, "rounds": 3},
+        noise_spec={"after_clifford_depolarization": 1e-3},
+        decoder_spec={"name": "bposd", "error_rate": 1e-3, "max_iter": 8, "osd_order": 2},
+        sim_spec={"shots": 8, "seed": 5},
+    )
+    result = run_experiment(config)
+    assert result.circuit is not None
+    assert result.syndrome_batch.shot_count == 8
+    assert result.analysis_report.decoder_name == "bposd"
+```
+
+- [ ] **Step 2: Run the tests to verify they fail**
+
+Run: `pytest tests/test_experiment_runner.py tests/integration/test_runner_pipeline.py -v`
+
+Expected: FAIL because the runner objects and runner API do not exist yet.
+
+- [ ] **Step 3: Implement the runner object model and orchestration**
+
+```python
+# src/qec_rd/core/experiments.py
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Any
+
+from qec_rd.core.artifacts import CircuitArtifact
+from qec_rd.core.codes import CodeSpec
+from qec_rd.core.noise import NoiseModel
+from qec_rd.core.results import AnalysisReport, DecodeResult, SyndromeBatch
+
+
+@dataclass(frozen=True, slots=True)
+class ExperimentConfig:
+    code_spec: CodeSpec | dict[str, Any] | None = None
+    circuit_spec: dict[str, Any] | None = None
+    noise_spec: NoiseModel | dict[str, Any] = field(default_factory=dict)
+    decoder_spec: dict[str, Any] = field(default_factory=dict)
+    sim_spec: dict[str, Any] = field(default_factory=dict)
+    analysis_spec: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True, slots=True)
+class ExperimentResult:
+    config: ExperimentConfig
+    circuit: CircuitArtifact
+    syndrome_batch: SyndromeBatch
+    decode_result: DecodeResult
+    analysis_report: AnalysisReport
+```
+
+```python
+# src/qec_rd/kernel/runner.py
+from __future__ import annotations
+
+from dataclasses import replace
+
+from qec_rd.core import CodeSpec, ExperimentConfig, ExperimentResult, NoiseModel
+from qec_rd.kernel.analysis import analyze_results
+from qec_rd.kernel.circuit import build_circuit, load_circuit
+from qec_rd.kernel.decode import run_decoder
+from qec_rd.kernel.graph import build_decoding_graph, extract_dem, sample_syndromes
+
+
+class ExperimentRunner:
+    def prepare(self, config: ExperimentConfig):
+        if config.circuit_spec:
+            circuit = load_circuit(config.circuit_spec["source"], format=config.circuit_spec["format"])
+        else:
+            code_spec = config.code_spec if isinstance(config.code_spec, CodeSpec) else CodeSpec(**config.code_spec)
+            noise_model = (
+                config.noise_spec
+                if isinstance(config.noise_spec, NoiseModel)
+                else NoiseModel(**config.noise_spec)
+                if config.noise_spec
+                else None
+            )
+            circuit = build_circuit(
+                code_spec,
+                noise_model,
+            )
+        graph = build_decoding_graph(extract_dem(circuit))
+        return circuit, graph
+
+    def run(self, config: ExperimentConfig) -> ExperimentResult:
+        circuit, graph = self.prepare(config)
+        batch = sample_syndromes(circuit, **config.sim_spec)
+        decoder_spec = dict(config.decoder_spec)
+        decoder_name = decoder_spec.pop("name")
+        decode_result = run_decoder(graph, batch, decoder_name=decoder_name, **decoder_spec)
+        analysis_report = analyze_results(decode_result)
+        return self.collect_result(config, circuit, batch, decode_result, analysis_report)
+
+    def collect_result(self, config, circuit, batch, decode_result, analysis_report) -> ExperimentResult:
+        return ExperimentResult(
+            config=config,
+            circuit=circuit,
+            syndrome_batch=batch,
+            decode_result=decode_result,
+            analysis_report=analysis_report,
+        )
+
+
+def run_experiment(config: ExperimentConfig) -> ExperimentResult:
+    return ExperimentRunner().run(config)
+
+
+def benchmark(config: ExperimentConfig, repeats: int) -> list[ExperimentResult]:
+    return [run_experiment(config) for _ in range(repeats)]
+
+
+def sweep(config: ExperimentConfig, path: str, values: list[object]) -> list[ExperimentResult]:
+    head, field_name = path.split(".", 1)
+    results: list[ExperimentResult] = []
+    for value in values:
+        section = dict(getattr(config, head))
+        section[field_name] = value
+        mutated = replace(config, **{head: section})
+        results.append(run_experiment(mutated))
+    return results
+```
+
+```python
+# src/qec_rd/api.py
+from qec_rd.core import CodeSpec, ExperimentConfig, ExperimentResult, NoiseModel
+from qec_rd.kernel.analysis import analyze_results
+from qec_rd.kernel.circuit import build_circuit, load_circuit
+from qec_rd.kernel.decode import run_decoder
+from qec_rd.kernel.graph import build_decoding_graph, extract_dem, sample_syndromes
+from qec_rd.kernel.runner import benchmark, run_experiment, sweep
+
+__all__ = [
+    "analyze_results",
+    "benchmark",
+    "build_circuit",
+    "build_decoding_graph",
+    "extract_dem",
+    "load_circuit",
+    "run_decoder",
+    "run_experiment",
+    "sample_syndromes",
+    "sweep",
+    "CodeSpec",
+    "ExperimentConfig",
+    "ExperimentResult",
+    "NoiseModel",
+]
+```
+
+- [ ] **Step 4: Run the targeted tests and the full suite**
+
+Run: `pytest tests/test_experiment_runner.py tests/integration/test_runner_pipeline.py -v`
+
+Expected: PASS with `4 passed`.
+
+Run: `pytest -q`
+
+Expected: PASS for the full suite, with both direct pipeline and runner API coverage.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/qec_rd/core/experiments.py src/qec_rd/kernel/runner.py src/qec_rd/core/__init__.py src/qec_rd/api.py tests/test_experiment_runner.py tests/integration/test_runner_pipeline.py
+git commit -m "feat(api): add stage1 runner orchestration"
+```
+
+---
+
 ## Self-Review
 
 ### Spec coverage
 
 - Unified object model: covered by Task 2
-- Built-in rotated surface, unrotated surface, and toric support: covered by Tasks 2A and 3
-- User-defined CSS code to simple stabilizer measurement circuit generation: covered by Tasks 2A and 3
+- Built-in repetition, rotated surface, unrotated surface, and toric circuit catalog support: covered by Tasks 2A and 3
 - Stim-only Pauli-compatible noise scope: covered by Task 2
 - Generated/imported circuit entry: covered by Task 3
 - DEM extraction and decoding graph: covered by Task 4
@@ -1764,6 +1992,7 @@ git commit -m "feat(analysis): add stage1 reports and end-to-end tests"
 - BP+OSD via external package: covered by Task 7
 - Custom decoder end-to-end hook: covered by Task 7A
 - Basic analysis and end-to-end acceptance: covered by Task 8
+- Runner API and DeltaKit-style orchestration shell: covered by Task 8A
 
 ### Placeholder scan
 
@@ -1775,4 +2004,5 @@ git commit -m "feat(analysis): add stage1 reports and end-to-end tests"
 
 - `CodeSpec`, `NoiseModel`, `CircuitArtifact`, `DemArtifact`, `DecodingGraph`, `SyndromeBatch`, `DecodeResult`, and `AnalysisReport` are introduced in Task 2 and used consistently later
 - `build_circuit`, `load_circuit`, `extract_dem`, `build_decoding_graph`, `sample_syndromes`, `run_decoder`, and `analyze_results` are introduced before they are used in later tasks
+- `ExperimentConfig`, `ExperimentResult`, `ExperimentRunner`, `run_experiment`, `benchmark`, and `sweep` are introduced before the runner tests use them
 - Decoder names are kept consistent as `"pymatching"`, `"bposd"`, and `"custom"`
