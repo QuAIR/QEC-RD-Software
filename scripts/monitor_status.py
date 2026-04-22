@@ -15,12 +15,19 @@ def main():
     with open(STATE_FILE) as f:
         state = json.load(f)
 
+    iv = state.get('current_interval', 'N/A')
+    if isinstance(iv, (int, float)) and iv < 1:
+        iv_str = f"{iv * 60:.0f}s"
+    elif isinstance(iv, (int, float)):
+        iv_str = f"{iv:.1f}m"
+    else:
+        iv_str = str(iv)
     print("GitHub Monitor Status")
     print("=" * 40)
     print(f"Last check:       {state.get('last_check', 'Never')}")
     print(f"Next check:       {state.get('next_check_time', 'N/A')}")
-    print(f"Current interval: {state.get('current_interval', 'N/A')} minutes")
-    print(f"Recent scores:    {state.get('activity_scores', [])}")
+    print(f"Current interval: {iv_str}")
+    print(f"Idle streak:      {state.get('idle_streak', 0)}")
     print(f"Processed comments: {len(state.get('processed_comments', []))}")
     print(f"Processed reviews:  {len(state.get('processed_reviews', []))}")
     print("=" * 40)
