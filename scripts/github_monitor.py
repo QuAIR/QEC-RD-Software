@@ -4,6 +4,7 @@ GitHub monitor for QuAIR/QEC-RD-Software.
 Tracks PRs and issues for mentions/comments directed at LeiZhang-116-4.
 """
 import json
+import logging
 import subprocess
 import sys
 import os
@@ -14,7 +15,22 @@ REPO = "QuAIR/QEC-RD-Software"
 MY_USERNAME = "LeiZhang-116-4"
 TARGET_MENTION = "lei-zhang-116.4"
 STATE_FILE = Path(__file__).parent / ".monitor_state.json"
+LOG_FILE = Path(__file__).parent / "logs" / "monitor.log"
 CUTOFF_DATE = datetime(2026, 4, 26, 23, 59, 59, tzinfo=timezone.utc)
+
+# Setup logging
+logger = logging.getLogger("github_monitor")
+logger.setLevel(logging.INFO)
+formatter = logging.Formatter(
+    "%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+file_handler = logging.FileHandler(LOG_FILE, encoding="utf-8")
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+console_handler = logging.StreamHandler(sys.stdout)
+console_handler.setFormatter(formatter)
+logger.addHandler(console_handler)
 
 
 def run_gh(args: list[str]) -> dict | list:
@@ -140,22 +156,21 @@ def main():
 
     # Check if monitoring period has expired
     if now_dt > CUTOFF_DATE:
-        print(f"[{now}] MONITORING PERIOD EXPIRED (cutoff: {CUTOFF_DATE.isoformat()})")
-        print("Please delete the cron job to stop automatic checks.")
+        logger.warning(f"MONITORING PERIOD EXPIRED (cutoff: {CUTOFF_DATE.isoformat()})")
+        logger.warning("Please delete the cron job to stop automatic checks.")
         return 2  # Exit code 2 = monitoring expired
 
     state = load_state()
 
-    print(f"[{now}] GitHub Monitor Check")
-    print(f"Repo: {REPO} | User: {MY_USERNAME}")
-    print(f"Monitoring until: {CUTOFF_DATE.isoformat()}")
-    print("-" * 50)
+    logger.info("GitHub Monitor Check")
+    logger.info(f"Repo: {REPO} | User: {MY_USERNAME}")
+    logger.info(f"Monitoring until: {CUTOFF_DATE.isoformat()}")
 
     new_notifications = []
 
     # === Check PRs ===
     my_prs = get_my_open_prs()
-    print(f"Open PRs by {MY_USERNAME}: {len(my_prs)}")
+    logger.info(f"Open PRs by {MY_USERNAME}: {len(my_prs)}")
 
     for pr in my_prs:
         pr_num = pr["number"]
@@ -185,7 +200,7 @@ def main():
 
     # === Check Issues for mentions ===
     open_issues = get_open_issues()
-    print(f"Open issues: {len(open_issues)}")
+    logger.info(f"Open issues: {len(open_issues)}")
 
     for issue in open_issues:
         issue_num = issue["number"]
@@ -212,15 +227,13 @@ def main():
     save_state(state)
 
     if new_notifications:
-        print(f"\n{'='*70}")
-        print(f"ACTION REQUIRED: {len(new_notifications)} new notification(s)")
-        print(f"{'='*70}")
+        logger.warning(f"ACTION REQUIRED: {len(new_notifications)} new notification(s)")
         for i, notif in enumerate(new_notifications, 1):
-            print(f"\n--- Notification {i}/{len(new_notifications)} ---")
-            print(notif)
+            logger.warning(f"--- Notification {i}/{len(new_notifications)} ---")
+            logger.warning(notif.strip())
         return 1
     else:
-        print(f"[{now}] All clear. No new notifications.")
+        logger.info("All clear. No new notifications.")
         return 0
 
 

@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
 Adaptive GitHub monitor with dynamic frequency adjustment.
-Runs on a fixed 5-minute cron, but only performs actual check when interval expires.
-Interval range: 5 minutes (high activity) ~ 120 minutes (idle).
+Runs on a fixed cron, but only performs actual check when interval expires.
+Interval range: 30 seconds (high activity) ~ 2 hours (idle).
 """
 import json
+import logging
 import subprocess
 import sys
 from datetime import datetime, timezone, timedelta
@@ -12,10 +13,27 @@ from pathlib import Path
 
 REPO = "QuAIR/QEC-RD-Software"
 STATE_FILE = Path(__file__).parent / ".monitor_state.json"
+LOG_DIR = Path(__file__).parent / "logs"
+LOG_FILE = LOG_DIR / "monitor.log"
 MIN_INTERVAL = 0.5    # 30 seconds
 MAX_INTERVAL = 120    # 2 hours
 GROWTH_FACTOR = 1.12  # exponential growth per idle check
 CUTOFF_DATE = datetime(2026, 4, 26, 23, 59, 59, tzinfo=timezone.utc)
+
+# Setup logging
+LOG_DIR.mkdir(exist_ok=True)
+logger = logging.getLogger("adaptive_monitor")
+logger.setLevel(logging.INFO)
+formatter = logging.Formatter(
+    "%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+file_handler = logging.FileHandler(LOG_FILE, encoding="utf-8")
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+console_handler = logging.StreamHandler(sys.stdout)
+console_handler.setFormatter(formatter)
+logger.addHandler(console_handler)
 
 
 def now_utc() -> datetime:
@@ -146,7 +164,7 @@ def main():
             iv_str = f"{interval * 60:.0f}s"
         else:
             iv_str = f"{interval:.1f}m"
-        print(f"[{now.isoformat()}] Skip (interval={iv_str}, next={next_str})")
+        logger.info(f"Skip (interval={iv_str}, next={next_str})")
         return 0
 
     # Time to check
@@ -155,7 +173,7 @@ def main():
         prev_str = f"{prev * 60:.0f}s"
     else:
         prev_str = f"{prev:.1f}m"
-    print(f"[{now.isoformat()}] Running check (interval was {prev_str})")
+    logger.info(f"Running check (interval was {prev_str})")
 
     exit_code, new_notifications = run_monitor_script()
 
@@ -174,7 +192,13 @@ def main():
         iv_str = f"{new_interval * 60:.0f}s"
     else:
         iv_str = f"{new_interval:.1f}m"
-    print(f"[{now.isoformat()}] Activity: {new_notifications} notifications, {len(recent_events)} events -> next interval={iv_str}")
+    logger.info(f"Activity: {new_notifications} notifications, {len(recent_events)} events -> next interval={iv_str}")
+
+    # Log actionable summary if notifications were found
+    if new_notifications > 0:
+        logger.warning(f"ACTION REQUIRED: {new_notifications} new notification(s) detected")
+    else:
+        logger.info("No actionable notifications")
 
     return exit_code
 
