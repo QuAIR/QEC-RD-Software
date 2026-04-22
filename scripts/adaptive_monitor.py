@@ -194,11 +194,22 @@ def main():
         iv_str = f"{new_interval:.1f}m"
     logger.info(f"Activity: {new_notifications} notifications, {len(recent_events)} events -> next interval={iv_str}")
 
-    # Log actionable summary if notifications were found
+    # Log structured action summary
+    next_check = state.get("next_check_time", "unknown")
     if new_notifications > 0:
         logger.warning(f"ACTION REQUIRED: {new_notifications} new notification(s) detected")
+        logger.info(
+            f"SUMMARY | check_time={now.isoformat()} | "
+            f"result=ACTION_REQUIRED | notifications={new_notifications} | "
+            f"events={len(recent_events)} | next_check={next_check} | interval={iv_str}"
+        )
     else:
         logger.info("No actionable notifications")
+        logger.info(
+            f"SUMMARY | check_time={now.isoformat()} | "
+            f"result=NO_ACTION | notifications=0 | events={len(recent_events)} | "
+            f"next_check={next_check} | interval={iv_str}"
+        )
 
     return exit_code
 
