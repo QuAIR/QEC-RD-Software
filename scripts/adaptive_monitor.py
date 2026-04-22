@@ -20,7 +20,7 @@ MAX_INTERVAL = 120    # 2 hours
 GROWTH_FACTOR = 1.12  # exponential growth per idle check
 CUTOFF_DATE = datetime(2026, 4, 26, 23, 59, 59, tzinfo=timezone.utc)
 
-# Setup logging
+# Setup logging: file gets everything, console only gets actual checks (not skips)
 LOG_DIR.mkdir(exist_ok=True)
 logger = logging.getLogger("adaptive_monitor")
 logger.setLevel(logging.INFO)
@@ -31,6 +31,17 @@ formatter = logging.Formatter(
 file_handler = logging.FileHandler(LOG_FILE, encoding="utf-8")
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
+
+# Separate file-only logger for skip messages (no console output)
+skip_logger = logging.getLogger("adaptive_monitor.skip")
+skip_logger.setLevel(logging.INFO)
+skip_logger.propagate = False  # Don't inherit parent handlers
+skip_file_handler = logging.FileHandler(LOG_FILE, encoding="utf-8")
+skip_file_handler.setFormatter(formatter)
+skip_logger.addHandler(skip_file_handler)
+# No console handler for skip_logger
+
+# Console handler for main logger (actual checks)
 console_handler = logging.StreamHandler(sys.stdout)
 console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
@@ -164,7 +175,7 @@ def main():
             iv_str = f"{interval * 60:.0f}s"
         else:
             iv_str = f"{interval:.1f}m"
-        logger.info(f"Skip (interval={iv_str}, next={next_str})")
+        skip_logger.info(f"Skip (interval={iv_str}, next={next_str})")
         return 0
 
     # Time to check
