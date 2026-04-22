@@ -5,17 +5,22 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "qec-rd-software"
 version = "0.1.0"
-description = "QEC 研发软件：Stim / 张量 QEC / DeltaKit 路线的可扩展 Python 基座（阶段化建设）"
+description = "QEC R&D software backbone built on Stim with extensible circuit, graph, decode, and analysis layers."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "Apache-2.0" }
 dependencies = [
     "numpy>=1.26",
+    "scipy>=1.13",
     "stim>=1.14,<2",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8"]
+dev = [
+    "pytest>=8",
+    "pymatching>=2.2",
+    "ldpc>=2.3",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
