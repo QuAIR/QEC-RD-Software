@@ -1,20 +1,19 @@
 import pytest
 
-from qec_rd.core import CodeSpec
+from qec_rd.core.codes import CodeSpec, SUPPORTED_STAGE1_BUILTIN_FAMILIES
 
 
-def test_codespec_is_limited_to_stage1_builtin_catalog_entries():
-    code = CodeSpec(
-        family="rotated_surface_code",
-        distance=3,
-        rounds=3,
-        metadata={"variant": "memory_z"},
+def test_code_spec_rejects_unknown_builtin_family() -> None:
+    with pytest.raises(ValueError, match="unsupported"):
+        CodeSpec(family="unknown_family", distance=3, rounds=3)
+
+
+def test_supported_stage1_builtin_families_exact_catalog() -> None:
+    assert SUPPORTED_STAGE1_BUILTIN_FAMILIES == frozenset(
+        {
+            "repetition_code:memory",
+            "rotated_surface_code",
+            "unrotated_surface_code",
+            "toric_code",
+        }
     )
-
-    assert code.family == "rotated_surface_code"
-    assert code.metadata["variant"] == "memory_z"
-
-
-def test_codespec_rejects_unknown_custom_family():
-    with pytest.raises(ValueError):
-        CodeSpec(family="my_custom_code", distance=3, rounds=3)
