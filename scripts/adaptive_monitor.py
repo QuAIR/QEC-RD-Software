@@ -92,15 +92,17 @@ def run_monitor_script() -> tuple[int, int]:
     output = result.stdout + result.stderr
     count = 0
     for line in output.splitlines():
-        if "new notification" in line.lower() and "action required" in line.lower():
-            # Parse "ACTION REQUIRED: N new notification(s)"
-            try:
-                parts = line.split(":")
-                if len(parts) >= 2:
-                    num_str = parts[1].strip().split()[0]
-                    count = int(num_str)
-            except (ValueError, IndexError):
-                pass
+        # Look for the exact github_monitor pattern (after log timestamp)
+        if "ACTION REQUIRED:" in line and "new notification" in line:
+            # Line format: "2026-04-22 14:57:38 [WARNING] ACTION REQUIRED: 1 new notification(s)"
+            # Find the part after "ACTION REQUIRED:"
+            idx = line.find("ACTION REQUIRED:")
+            if idx != -1:
+                after = line[idx + len("ACTION REQUIRED:"):].strip()
+                try:
+                    count = int(after.split()[0])
+                except (ValueError, IndexError):
+                    pass
     return result.returncode, count
 
 
