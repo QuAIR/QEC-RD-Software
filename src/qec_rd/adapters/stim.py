@@ -1,6 +1,6 @@
-"""Stim adapter module."""
 from __future__ import annotations
 
+from os import PathLike
 from pathlib import Path
 
 import numpy as np
@@ -8,65 +8,25 @@ import stim
 
 from qec_rd.core import (
     CircuitArtifact,
-    CircuitSourceKind,
-    CodeSpec,
     DemArtifact,
-    NoiseModel,
     SyndromeBatch,
     UnsupportedCircuitFormatError,
 )
 
 
-def _stim_generated_name(family: str) -> str:
-    mapping = {
-        "repetition_code:memory": "repetition_code:memory",
-        "rotated_surface_code": "surface_code:rotated_memory_z",
-        "unrotated_surface_code": "surface_code:unrotated_memory_z",
-    }
-    if family not in mapping:
-        raise UnsupportedCircuitFormatError(f"Unsupported Stage 1 generated family: {family!r}")
-    return mapping[family]
-
-
-def build_stim_generated_circuit(code_spec: CodeSpec, noise_model: NoiseModel | None) -> stim.Circuit:
-    circuit = stim.Circuit.generated(
-        _stim_generated_name(code_spec.family),
-        distance=code_spec.distance,
-        rounds=code_spec.rounds,
-        after_clifford_depolarization=noise_model.after_clifford_depolarization if noise_model else 0.0,
-    )
-    return circuit
-
-
-def build_generated_circuit_artifact(code_spec: CodeSpec, noise_model: NoiseModel | None) -> CircuitArtifact:
-    circuit = build_stim_generated_circuit(code_spec, noise_model)
-    return CircuitArtifact(
-        source_kind=CircuitSourceKind.GENERATED,
-        source_format="stim",
-        code_spec=code_spec,
-        origin_metadata={"generator": "stim.Circuit.generated"},
-        raw_handle=circuit,
-    )
-
-
-def load_stim_circuit(source: stim.Circuit | str | Path, format: str) -> CircuitArtifact:
+def load_stim_circuit(
+    source: stim.Circuit | str | PathLike[str],
+    format: str = "stim",
+) -> stim.Circuit:
     if format != "stim":
         raise UnsupportedCircuitFormatError(f"Unsupported circuit format: {format!r}")
     if isinstance(source, stim.Circuit):
-        return CircuitArtifact(
-            source_kind=CircuitSourceKind.STIM_OBJECT,
-            source_format="stim",
-            origin_metadata={"kind": "object"},
-            raw_handle=source,
-        )
+        return source
+
     path = Path(source)
-    circuit = stim.Circuit.from_file(path)
-    return CircuitArtifact(
-        source_kind=CircuitSourceKind.STIM_FILE,
-        source_format="stim",
-        origin_metadata={"path": str(path)},
-        raw_handle=circuit,
-    )
+    if path.suffix.lower() != ".stim":
+        raise UnsupportedCircuitFormatError(f"Unsupported circuit format: {path.suffix!r}")
+    return stim.Circuit.from_file(str(path))
 
 
 def extract_stim_dem(circuit_artifact: CircuitArtifact) -> DemArtifact:
