@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 
-from qec_rd.core import CodeSpec, ExperimentConfig, ExperimentResult, NoiseModel
+from qec_rd.core import CodeSpec, ExperimentConfig, ExperimentResult, noise_model_from_spec
 from qec_rd.kernel.analysis import analyze_results
 from qec_rd.kernel.circuit import build_circuit, load_circuit
 from qec_rd.kernel.decode import run_decoder
@@ -16,13 +16,7 @@ class ExperimentRunner:
             circuit = load_circuit(config.circuit_spec["source"], format=config.circuit_spec["format"])
         else:
             code_spec = config.code_spec if isinstance(config.code_spec, CodeSpec) else CodeSpec(**config.code_spec)
-            noise_model = (
-                config.noise_spec
-                if isinstance(config.noise_spec, NoiseModel)
-                else NoiseModel(**config.noise_spec)
-                if config.noise_spec
-                else None
-            )
+            noise_model = noise_model_from_spec(config.noise_spec)
             circuit = build_circuit(
                 code_spec,
                 noise_model,

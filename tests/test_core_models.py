@@ -12,6 +12,7 @@ from qec_rd.core import (
     ExperimentResult,
     NoiseModel,
     SyndromeBatch,
+    noise_model_from_spec,
 )
 
 
@@ -77,3 +78,48 @@ def test_core_objects_capture_stage1_metadata():
     assert batch.shot_count == 4
     assert result.failure_count == 0
     assert report.logical_error_rate == 0.0
+
+
+def test_noise_model_named_presets_map_to_stage1_stim_channels():
+    assert NoiseModel.toy(p=0.01) == NoiseModel(
+        after_clifford_depolarization=0.01,
+        before_round_data_depolarization=0.001,
+        before_measure_flip_probability=0.01,
+        after_reset_flip_probability=0.001,
+    )
+    assert NoiseModel.toy(p=0.01, p_measurement_flip=0.02).before_measure_flip_probability == 0.02
+
+    assert NoiseModel.toy_phenomenological(p=0.01) == NoiseModel(
+        before_round_data_depolarization=0.01,
+        before_measure_flip_probability=0.01,
+    )
+    assert NoiseModel.sd6(p=0.01) == NoiseModel(
+        after_clifford_depolarization=0.01,
+        before_round_data_depolarization=0.01,
+        before_measure_flip_probability=0.01,
+        after_reset_flip_probability=0.01,
+    )
+    assert NoiseModel.si1000(p=0.01) == NoiseModel(
+        after_clifford_depolarization=0.01,
+        before_round_data_depolarization=0.001,
+        before_measure_flip_probability=0.05,
+        after_reset_flip_probability=0.02,
+    )
+
+
+def test_noise_model_from_spec_accepts_named_and_raw_specs():
+    assert noise_model_from_spec({"name": "sd6", "p": 0.01}) == NoiseModel.sd6(0.01)
+    assert noise_model_from_spec({"model": "toy_phenomenological", "p": 0.02}) == (
+        NoiseModel.toy_phenomenological(0.02)
+    )
+    assert noise_model_from_spec({"name": "ToyPhenomenologicalNoise", "p": 0.02}) == (
+        NoiseModel.toy_phenomenological(0.02)
+    )
+    assert noise_model_from_spec({"name": "SI1000Noise", "p": 0.001}) == NoiseModel.si1000(
+        0.001
+    )
+    assert noise_model_from_spec({"after_clifford_depolarization": 0.03}) == NoiseModel(
+        after_clifford_depolarization=0.03
+    )
+    assert noise_model_from_spec(NoiseModel.si1000(0.001)) == NoiseModel.si1000(0.001)
+    assert noise_model_from_spec(None) is None

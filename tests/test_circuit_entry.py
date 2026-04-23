@@ -6,6 +6,7 @@ import stim
 from qec_rd.core import (
     CircuitSourceKind,
     CodeSpec,
+    ExperimentConfig,
     NoiseModel,
     RepetitionCode,
     RotatedSurfaceCode,
@@ -16,6 +17,7 @@ from qec_rd.core import (
 )
 from qec_rd.kernel.circuit import build_circuit, load_circuit
 from qec_rd.kernel.memory import build_memory_circuit
+from qec_rd.kernel.runner import ExperimentRunner
 
 
 def test_build_circuit_returns_generated_artifact_for_supported_families() -> None:
@@ -93,3 +95,28 @@ def test_build_memory_circuit_uses_basis_as_experiment_choice_on_same_surface_co
     assert "\nM " in z_text
     assert "\nMX " in x_text
     assert z_text != x_text
+
+
+def test_toy_phenomenological_noise_generates_data_and_measurement_noise() -> None:
+    circuit = build_circuit(
+        CodeSpec(family="rotated_surface_code", distance=3, rounds=2),
+        NoiseModel.toy_phenomenological(p=0.01, p_measurement_flip=0.02),
+    ).raw_handle
+
+    circuit_text = str(circuit)
+    assert "DEPOLARIZE1(0.01)" in circuit_text
+    assert "X_ERROR(0.02)" in circuit_text or "Z_ERROR(0.02)" in circuit_text
+    assert "DEPOLARIZE2" not in circuit_text
+    circuit.detector_error_model()
+
+
+def test_runner_prepare_accepts_named_noise_spec_dict() -> None:
+    circuit, graph = ExperimentRunner().prepare(
+        ExperimentConfig(
+            code_spec=CodeSpec(family="rotated_surface_code", distance=3, rounds=2),
+            noise_spec={"name": "si1000", "p": 0.01},
+        )
+    )
+
+    assert "DEPOLARIZE2(0.01)" in str(circuit.raw_handle)
+    assert graph.num_detectors > 0
