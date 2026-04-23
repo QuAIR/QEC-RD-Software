@@ -7,6 +7,7 @@
 [![CI](https://github.com/QuAIR/QEC-RD-Software/actions/workflows/ci.yml/badge.svg)](https://github.com/QuAIR/QEC-RD-Software/actions/workflows/ci.yml)
 [![Coverage](https://github.com/QuAIR/QEC-RD-Software/actions/workflows/coverage.yml/badge.svg)](https://github.com/QuAIR/QEC-RD-Software/actions/workflows/coverage.yml)
 [![codecov](https://codecov.io/gh/QuAIR/QEC-RD-Software/branch/main/graph/badge.svg)](https://codecov.io/gh/QuAIR/QEC-RD-Software)
+[![Generated Docs](https://github.com/QuAIR/QEC-RD-Software/actions/workflows/docs.yml/badge.svg)](https://github.com/QuAIR/QEC-RD-Software/actions/workflows/docs.yml)
 
 QEC-RD-Software is a local research and engineering backbone for quantum error correction (QEC). It connects circuit construction, detector-error-model (DEM) extraction, syndrome sampling, decoding, and analysis behind a small Python API.
 
@@ -93,6 +94,12 @@ Documentation entry points in this repository:
 - [End-to-End Demos](docs/demos/index.md)
 - [API Reference](docs/api/index.md)
 
+Latest generated documentation artifact:
+
+- [Generated Docs workflow](https://github.com/QuAIR/QEC-RD-Software/actions/workflows/docs.yml)
+
+The badge above now means the workflow successfully built the MkDocs site and uploaded it as a downloadable artifact. It is a generated documentation bundle, not a hosted GitHub Pages website.
+
 ## Public API Map
 
 Most users should start from `qec_rd.api`:
@@ -139,7 +146,7 @@ The repository has three GitHub Actions workflows:
 
 - `.github/workflows/ci.yml` for tests
 - `.github/workflows/coverage.yml` for coverage and Codecov upload
-- `.github/workflows/docs.yml` for documentation builds
+- `.github/workflows/docs.yml` for MkDocs site generation and artifact upload
 
 ## Contributor Orientation
 

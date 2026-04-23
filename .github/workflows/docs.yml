@@ -1,4 +1,4 @@
-name: Docs
+name: Generated Docs
 
 on:
   push:
@@ -20,3 +20,9 @@ jobs:
           pip install -e ".[docs]"
       - name: Build docs
         run: mkdocs build --strict
+      - name: Upload generated docs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-docs-site
+          path: site
+          retention-days: 14
