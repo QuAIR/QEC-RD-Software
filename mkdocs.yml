@@ -1,0 +1,24 @@
+site_name: QEC-RD-Software
+site_description: Research and engineering backbone for quantum error correction workflows.
+repo_url: https://github.com/QuAIR/QEC-RD-Software
+repo_name: QuAIR/QEC-RD-Software
+docs_dir: docs
+site_dir: site
+use_directory_urls: true
+
+nav:
+  - Home: index.md
+  - Stage 1 Backbone:
+      - English Spec: superpowers/specs/2026-04-20-qec-rd-platform-backbone-design-en.md
+      - Chinese Spec: superpowers/specs/2026-04-20-qec-rd-platform-backbone-design.md
+      - Implementation Plan: superpowers/plans/2026-04-20-qec-rd-stage1-backbone-implementation.md
+      - Three-Person Plan: superpowers/plans/2026-04-21-qec-rd-stage1-3person-execution.md
+      - Workstream B Plan: superpowers/plans/2026-04-22-qec-rd-workstream-b-plan.md
+
+theme:
+  name: mkdocs
+
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
