@@ -11,6 +11,8 @@ class NoiseModel:
     before_round_data_depolarization: float | None = None
     before_measure_flip_probability: float | None = None
     after_reset_flip_probability: float | None = None
+    idle_depolarization: float | None = None
+    resonator_idle_depolarization: float | None = None
 
     @classmethod
     def toy(
@@ -51,8 +53,8 @@ class NoiseModel:
         )
 
     @classmethod
-    def si1000(cls, p: float = 0.0, pL: float = 0.0) -> NoiseModel:
-        """Stim-compatible SI1000 preset without leakage."""
+    def stim_circuit_level_si1000(cls, p: float = 0.0, pL: float = 0.0) -> NoiseModel:
+        """Coarse Stim circuit-level SI1000-style preset without scheduled idles."""
         if pL != 0:
             raise ValueError("SI1000 leakage parameter pL is non-Pauli and out of Stage 1 scope.")
         return cls(
@@ -60,6 +62,19 @@ class NoiseModel:
             before_round_data_depolarization=p / 10,
             before_measure_flip_probability=5 * p,
             after_reset_flip_probability=2 * p,
+        )
+
+    @classmethod
+    def si1000(cls, p: float = 0.0, pL: float = 0.0) -> NoiseModel:
+        """Scheduled superconducting-inspired SI1000 preset without leakage."""
+        if pL != 0:
+            raise ValueError("SI1000 leakage parameter pL is non-Pauli and out of Stage 1 scope.")
+        return cls(
+            after_clifford_depolarization=p,
+            before_measure_flip_probability=5 * p,
+            after_reset_flip_probability=2 * p,
+            idle_depolarization=p / 10,
+            resonator_idle_depolarization=2 * p,
         )
 
 
@@ -76,6 +91,10 @@ _PRESET_ALIASES = {
     "si1000": "si1000",
     "si1000_noise": "si1000",
     "si1000noise": "si1000",
+    "stim_circuit_level_si1000": "stim_circuit_level_si1000",
+    "stimcircuitlevelsi1000": "stim_circuit_level_si1000",
+    "stim_si1000": "stim_circuit_level_si1000",
+    "stimsi1000": "stim_circuit_level_si1000",
 }
 
 

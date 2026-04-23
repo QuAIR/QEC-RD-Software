@@ -181,13 +181,15 @@ class RotatedSurfaceCode(BuiltinCode):
             for y in range(0, max_coord + 1, 2)
             if (x + y - max_coord) % 4 == 2
         )
-        deltas = ((-1, 1), (1, 1), (-1, -1), (1, -1))
+        x_deltas = ((-1, 1), (-1, -1), (1, 1), (1, -1))
+        z_deltas = ((-1, 1), (1, 1), (-1, -1), (1, -1))
         data_set = set(data_coords)
 
         def build_stabilizers(
             ancillas: tuple[Coord, ...],
             basis: str,
         ) -> tuple[StabilizerSpec, ...]:
+            deltas = x_deltas if basis == "X" else z_deltas
             return tuple(
                 StabilizerSpec(
                     basis=basis,
