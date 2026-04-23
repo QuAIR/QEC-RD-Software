@@ -6,6 +6,7 @@
 
 [![CI](https://github.com/QuAIR/QEC-RD-Software/actions/workflows/ci.yml/badge.svg)](https://github.com/QuAIR/QEC-RD-Software/actions/workflows/ci.yml)
 [![Coverage](https://github.com/QuAIR/QEC-RD-Software/actions/workflows/coverage.yml/badge.svg)](https://github.com/QuAIR/QEC-RD-Software/actions/workflows/coverage.yml)
+[![Codecov](https://codecov.io/gh/QuAIR/QEC-RD-Software/branch/main/graph/badge.svg)](https://codecov.io/gh/QuAIR/QEC-RD-Software)
 [![Docs Online](https://img.shields.io/badge/docs-online-blue)](https://quairkit.com/QEC-RD-Software/)
 [![Generated Docs](https://github.com/QuAIR/QEC-RD-Software/actions/workflows/docs.yml/badge.svg)](https://github.com/QuAIR/QEC-RD-Software/actions/workflows/docs.yml)
 
@@ -147,7 +148,7 @@ mkdocs build --strict
 The repository has three GitHub Actions workflows:
 
 - `.github/workflows/ci.yml` for tests
-- `.github/workflows/coverage.yml` for coverage report generation and artifact upload
+- `.github/workflows/coverage.yml` for coverage report generation, artifact upload, and Codecov upload
 - `.github/workflows/docs.yml` for MkDocs site generation and artifact upload
 
 ## Contributor Orientation
@@ -167,7 +168,7 @@ Keep Stage 1 changes small and testable. Do not add non-Pauli runtime behavior, 
 - Surface and toric circuits are platform-owned Stage 1 implementations.
 - DEM and graph behavior are fixed in Stage 1.
 - Non-Pauli noise and leakage are outside Stage 1 runtime scope.
-- Coverage reports are generated as workflow artifacts (`coverage-xml`). Codecov upload is pending Codecov-side repository registration.
+- Coverage reports are uploaded to Codecov and available as workflow artifacts.
 
 ## Team
 
