@@ -8,6 +8,13 @@ use_directory_urls: true
 
 nav:
   - Home: index.md
+  - End-to-End Demos:
+      - Overview: demos/index.md
+      - Built-in Repetition Memory: demos/builtin-repetition-memory.md
+      - Rotated Surface SI1000: demos/rotated-surface-si1000.md
+      - Imported Stim Circuit: demos/imported-stim-circuit.md
+      - Custom Decoder Hook: demos/custom-decoder-hook.md
+      - Sweep and Analysis Report: demos/sweep-analysis-report.md
   - Stage 1 Backbone:
       - English Spec: superpowers/specs/2026-04-20-qec-rd-platform-backbone-design-en.md
       - Chinese Spec: superpowers/specs/2026-04-20-qec-rd-platform-backbone-design.md

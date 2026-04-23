@@ -9,83 +9,151 @@
 [![codecov](https://codecov.io/gh/QuAIR/QEC-RD-Software/branch/main/graph/badge.svg)](https://codecov.io/gh/QuAIR/QEC-RD-Software)
 [![Docs](https://github.com/QuAIR/QEC-RD-Software/actions/workflows/docs.yml/badge.svg)](https://github.com/QuAIR/QEC-RD-Software/actions/workflows/docs.yml)
 
-QEC-RD-Software is a research and engineering platform for quantum error correction (QEC).
+QEC-RD-Software is a local research and engineering backbone for quantum error correction (QEC). It connects circuit construction, detector-error-model (DEM) extraction, syndrome sampling, decoding, and analysis behind a small Python API.
 
-The project is aimed at building a practical local backbone that connects circuit construction, detector-error-model (DEM) extraction, syndrome sampling, decoding, and analysis inside one coherent workflow. Our current Stage 1 direction is to establish a clean `qec_rd` backbone on top of `stim`, while keeping the architecture extensible enough for future research and engineering growth.
+Stage 1 is intentionally focused: `stim` is the only runtime backend, DEM/graph logic is platform-owned, non-Pauli runtime noise is out of scope, and decoders come from external packages or custom decoder hooks.
 
-## Vision
+## Why This Repo Exists
 
-We want this repository to become a bridge from QEC theory exploration to engineering-oriented research. Instead of treating circuit generation, DEM handling, decoding, and analysis as isolated scripts, the project is organized around a unified platform object chain and a reproducible development workflow.
-
-In Stage 1, the runtime backend is intentionally narrow:
-
-- `stim` is the only execution backend
-- DEM and graph behavior are fixed and platform-owned
-- non-Pauli runtime behavior is out of scope
-- decoder algorithms come from standard external packages or custom decoder hooks
-
-## Target Features
-
-The current product plans and execution plans are organized around the following core capabilities:
-
-1. Built-in circuit catalog generation for repetition, rotated surface, unrotated surface, and toric families.
-2. Circuit import as the main customization path, so researchers can bring in external `stim` circuits and future circuit formats.
-3. Fixed DEM extraction from circuits into platform-standard artifacts.
-4. Fixed decoding-graph construction that downstream decoders can consume through stable platform objects.
-5. Stim-based syndrome sampling normalized into a standard `SyndromeBatch`.
-6. Stim-compatible Pauli noise presets, including toy, toy phenomenological, SD6, and SI1000-without-leakage models.
-7. External decoder integration for MWPM and BP+OSD through common ecosystem packages instead of in-repo decoder reimplementation.
-8. Custom decoder hooks that let user-defined decoders join the same end-to-end pipeline and analysis flow.
-
-## Stage 1 Backbone
-
-The approved Stage 1 architecture centers on a unified object chain:
+Many QEC experiments start as separate scripts: one script builds a circuit, another extracts a DEM, another runs a decoder, and another analyzes logical failures. This project turns that workflow into a stable object chain:
 
 `CodeSpec -> CircuitArtifact -> DemArtifact -> DecodingGraph -> SyndromeBatch -> DecodeResult -> AnalysisReport`
 
-This backbone is intended to give the project a stable scientific kernel that stays inside `qec_rd`, instead of exposing backend-native objects as the public language of the platform.
+That object chain is the shared language for users, researchers, and future engineering contributors.
 
-Planned Stage 1 module layout:
+## Main Features
 
-- `src/qec_rd/core/`
-  Shared object model, types, artifacts, experiment-level data structures, and result containers.
-- `src/qec_rd/kernel/circuit.py`
-  Built-in circuit catalog generation and external circuit import.
-- `src/qec_rd/kernel/graph.py`
-  DEM extraction, decoding-graph construction, and syndrome sampling flow.
-- `src/qec_rd/kernel/decode.py`
-  Decoder adaptation for MWPM, BP+OSD, and custom decoders.
-- `src/qec_rd/kernel/analysis.py`
-  Research-facing analysis and logical error rate reporting.
-- `src/qec_rd/adapters/stim.py`
-  Low-level bridge between platform objects and `stim`.
-- `src/qec_rd/api.py`
-  Thin public API layer over the Stage 1 backbone.
+- Built-in circuit catalog for repetition, rotated surface, unrotated surface, and toric memory experiments.
+- Circuit import path for user-provided `stim.Circuit` objects or `.stim` files.
+- Fixed DEM extraction and decoding-graph construction owned by the platform.
+- Stim-based syndrome sampling normalized into `SyndromeBatch`.
+- Stim-executable Pauli-style noise presets, including toy, toy phenomenological, SD6, scheduled SI1000-style, and coarse circuit-level SI1000-style models.
+- External MWPM decoding through `pymatching`.
+- Custom decoder hooks that return the same `DecodeResult` shape.
+- Analysis reports with logical error rate, failure counts, and per-logical summaries.
 
-## Development Status
+## Install
 
-The repository is currently in the Stage 1 planning and execution-harness phase.
+From the repository root:
 
-The most important committed planning documents are:
+```powershell
+python -m pip install --upgrade pip
+python -m pip install -e ".[dev,docs]"
+```
 
-- [Stage 1 backbone design (English)](docs/superpowers/specs/2026-04-20-qec-rd-platform-backbone-design-en.md)
-- [Stage 1 backbone design (Chinese)](docs/superpowers/specs/2026-04-20-qec-rd-platform-backbone-design.md)
-- [Stage 1 backbone implementation plan](docs/superpowers/plans/2026-04-20-qec-rd-stage1-backbone-implementation.md)
+If you only want to run the package without docs tooling:
+
+```powershell
+python -m pip install -e ".[dev]"
+```
+
+## First Experiment
+
+This runs a complete built-in repetition-code memory experiment with MWPM decoding:
+
+```python
+from qec_rd.api import CodeSpec, ExperimentConfig, NoiseModel, run_experiment
+
+config = ExperimentConfig(
+    code_spec=CodeSpec(
+        family="repetition_code:memory",
+        distance=3,
+        rounds=3,
+        logical_basis="Z",
+    ),
+    noise_spec=NoiseModel(after_clifford_depolarization=0.001),
+    decoder_spec={"name": "pymatching"},
+    sim_spec={"shots": 100, "seed": 7},
+)
+
+result = run_experiment(config)
+
+print(result.analysis_report.shot_count)
+print(result.analysis_report.logical_error_rate)
+```
+
+## End-to-End Demos
+
+The docs include five acceptance demos that validate the design:
+
+- [Built-in repetition memory experiment](docs/demos/builtin-repetition-memory.md)
+- [Rotated surface memory with scheduled SI1000-style noise](docs/demos/rotated-surface-si1000.md)
+- [Imported Stim circuit pipeline](docs/demos/imported-stim-circuit.md)
+- [Custom decoder hook](docs/demos/custom-decoder-hook.md)
+- [Parameter sweep and analysis report](docs/demos/sweep-analysis-report.md)
+
+Build the docs locally with:
+
+```powershell
+mkdocs build --strict
+```
+
+## Public API Map
+
+Most users should start from `qec_rd.api`:
+
+```python
+from qec_rd.api import (
+    CodeSpec,
+    ExperimentConfig,
+    NoiseModel,
+    build_circuit,
+    extract_dem,
+    build_decoding_graph,
+    sample_syndromes,
+    run_decoder,
+    analyze_results,
+    run_experiment,
+    sweep,
+)
+```
+
+The direct pipeline API is useful when you want to inspect each artifact. The runner API is useful when you want a compact experiment configuration.
+
+## Development Workflow
+
+Run the test suite:
+
+```powershell
+pytest -q
+```
+
+Run the coverage gate:
+
+```powershell
+pytest --cov=qec_rd --cov-report=term-missing --cov-report=xml -q
+```
+
+Build docs:
+
+```powershell
+mkdocs build --strict
+```
+
+The repository has three GitHub Actions workflows:
+
+- `.github/workflows/ci.yml` for tests
+- `.github/workflows/coverage.yml` for coverage and Codecov upload
+- `.github/workflows/docs.yml` for documentation builds
+
+## Contributor Orientation
+
+Before changing architecture or public behavior, read:
+
+- [AGENTS.md](AGENTS.md) for agent and contributor rules
+- [CODEX.md](CODEX.md) for the working contract
+- [Stage 1 backbone design](docs/superpowers/specs/2026-04-20-qec-rd-platform-backbone-design-en.md)
 - [Three-person execution plan](docs/superpowers/plans/2026-04-21-qec-rd-stage1-3person-execution.md)
-- [Workstream B plan](docs/superpowers/plans/2026-04-22-qec-rd-workstream-b-plan.md)
-- [Agent workflow rules](AGENTS.md)
-- [Repo working contract](CODEX.md)
 
-## Collaboration Model
+Keep Stage 1 changes small and testable. Do not add non-Pauli runtime behavior, do not make DEM/graph construction user-customizable, and do not reimplement external decoders inside this repo.
 
-This project is being organized for multi-person parallel development.
+## Current Limitations
 
-The current execution harness assumes:
-
-- shared Stage 1 scope and architecture are frozen before parallel coding
-- work is split into focused workstreams with clear ownership
-- contributors work through platform objects instead of bypassing the backbone
-- tests and docs move together with each mergeable slice
+- Runtime backend is `stim` only.
+- Surface and toric circuits are platform-owned Stage 1 implementations.
+- DEM and graph behavior are fixed in Stage 1.
+- Non-Pauli noise and leakage are outside Stage 1 runtime scope.
+- Codecov requires repository token/OIDC configuration before the external Codecov badge can show uploaded coverage.
 
 ## Team
 
@@ -93,12 +161,8 @@ The current execution harness assumes:
 - [Chriskmh](https://github.com/Chriskmh)
 - [LeiZhang-116-4](https://github.com/LeiZhang-116-4)
 
-## Issues
-
-Task tracking and discussion live in [GitHub Issues](https://github.com/QuAIR/QEC-RD-Software/issues).
-
 ## License
 
-This project is licensed under the **Apache License 2.0**.
+This project is licensed under the Apache License 2.0.
 
 See [LICENSE](LICENSE) for the full text and [NOTICE](NOTICE) for attribution details.

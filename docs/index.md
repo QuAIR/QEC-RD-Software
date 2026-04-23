@@ -11,6 +11,12 @@ The current platform focuses on a Stim-based workflow:
 - external decoder integration and custom decoder hooks
 - analysis reports for logical error rate experiments
 
+## Start Here
+
+New users should start with the [end-to-end demos](demos/index.md). They show the full path from circuit construction or import to DEM extraction, sampling, decoding, and analysis.
+
+Developers should also read the Stage 1 backbone specs and execution plans in this documentation site to understand the architecture, current boundaries, and collaboration model.
+
 ## Current Scope
 
 Stage 1 intentionally stays narrow:
@@ -19,7 +25,3 @@ Stage 1 intentionally stays narrow:
 - Non-Pauli runtime behavior is out of scope.
 - DEM and graph behavior are platform-owned.
 - Decoder algorithms come from external packages or user-provided hooks.
-
-## Start Here
-
-Use the Stage 1 backbone specs and execution plans in this documentation site to understand the architecture, current boundaries, and collaboration model.

@@ -37,4 +37,11 @@ class AnalysisReport:
     failure_count: int
     logical_error_rate: float
     logical_error_rate_stderr: float
+    logical_failure_counts: np.ndarray = field(
+        default_factory=lambda: np.zeros(0, dtype=np.int64)
+    )
+    logical_failure_rates: np.ndarray = field(
+        default_factory=lambda: np.zeros(0, dtype=np.float64)
+    )
+    logical_error_distribution: dict[tuple[bool, ...], int] = field(default_factory=dict)
     metadata: dict[str, Any] = field(default_factory=dict)
