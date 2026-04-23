@@ -2,7 +2,7 @@ site_name: QEC-RD-Software
 site_description: Research and engineering backbone for quantum error correction workflows.
 repo_url: https://github.com/QuAIR/QEC-RD-Software
 repo_name: QuAIR/QEC-RD-Software
-site_url: https://quair.github.io/QEC-RD-Software/
+site_url: https://quairkit.com/QEC-RD-Software/
 docs_dir: docs
 site_dir: site
 use_directory_urls: true
