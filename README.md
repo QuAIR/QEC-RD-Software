@@ -6,7 +6,6 @@
 
 [![CI](https://github.com/QuAIR/QEC-RD-Software/actions/workflows/ci.yml/badge.svg)](https://github.com/QuAIR/QEC-RD-Software/actions/workflows/ci.yml)
 [![Coverage](https://github.com/QuAIR/QEC-RD-Software/actions/workflows/coverage.yml/badge.svg)](https://github.com/QuAIR/QEC-RD-Software/actions/workflows/coverage.yml)
-[![codecov](https://codecov.io/gh/QuAIR/QEC-RD-Software/branch/main/graph/badge.svg)](https://codecov.io/gh/QuAIR/QEC-RD-Software)
 [![Generated Docs](https://github.com/QuAIR/QEC-RD-Software/actions/workflows/docs.yml/badge.svg)](https://github.com/QuAIR/QEC-RD-Software/actions/workflows/docs.yml)
 
 QEC-RD-Software is a local research and engineering backbone for quantum error correction (QEC). It connects circuit construction, detector-error-model (DEM) extraction, syndrome sampling, decoding, and analysis behind a small Python API.
@@ -145,7 +144,7 @@ mkdocs build --strict
 The repository has three GitHub Actions workflows:
 
 - `.github/workflows/ci.yml` for tests
-- `.github/workflows/coverage.yml` for coverage and Codecov upload
+- `.github/workflows/coverage.yml` for coverage report generation and artifact upload
 - `.github/workflows/docs.yml` for MkDocs site generation and artifact upload
 
 ## Contributor Orientation
@@ -165,7 +164,7 @@ Keep Stage 1 changes small and testable. Do not add non-Pauli runtime behavior, 
 - Surface and toric circuits are platform-owned Stage 1 implementations.
 - DEM and graph behavior are fixed in Stage 1.
 - Non-Pauli noise and leakage are outside Stage 1 runtime scope.
-- Codecov requires repository token/OIDC configuration before the external Codecov badge can show uploaded coverage.
+- Coverage reports are generated as workflow artifacts (`coverage-xml`). Codecov upload is pending Codecov-side repository registration.
 
 ## Team
 
