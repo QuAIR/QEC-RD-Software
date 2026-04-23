@@ -15,6 +15,13 @@ nav:
       - Imported Stim Circuit: demos/imported-stim-circuit.md
       - Custom Decoder Hook: demos/custom-decoder-hook.md
       - Sweep and Analysis Report: demos/sweep-analysis-report.md
+  - Repo Skills:
+      - Overview: superpowers/skills/index.md
+      - Acceptance: superpowers/skills/qec-rd-acceptance/SKILL.md
+      - Running Memory Experiments: superpowers/skills/qec-rd-running-memory-experiments/SKILL.md
+      - Importing Stim Circuits: superpowers/skills/qec-rd-importing-stim-circuits/SKILL.md
+      - Integrating Custom Decoders: superpowers/skills/qec-rd-integrating-custom-decoders/SKILL.md
+      - Stage 1 Guardrails: superpowers/skills/qec-rd-stage1-guardrails/SKILL.md
   - Stage 1 Backbone:
       - English Spec: superpowers/specs/2026-04-20-qec-rd-platform-backbone-design-en.md
       - Chinese Spec: superpowers/specs/2026-04-20-qec-rd-platform-backbone-design.md
