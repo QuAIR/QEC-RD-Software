@@ -1,5 +1,11 @@
 # QEC-RD-Software
 
+<p align="center">
+  <img src="assets/logos/qec-rd-logo-primary.png" alt="QEC-RD logo" width="520">
+</p>
+
+[![CI](https://github.com/QuAIR/QEC-RD-Software/actions/workflows/ci.yml/badge.svg)](https://github.com/QuAIR/QEC-RD-Software/actions/workflows/ci.yml)
+
 QEC-RD-Software is a research and engineering platform for quantum error correction (QEC).
 
 The project is aimed at building a practical local backbone that connects circuit construction, detector-error-model (DEM) extraction, syndrome sampling, decoding, and analysis inside one coherent workflow. Our current Stage 1 direction is to establish a clean `qec_rd` backbone on top of `stim`, while keeping the architecture extensible enough for future research and engineering growth.
@@ -24,8 +30,9 @@ The current product plans and execution plans are organized around the following
 3. Fixed DEM extraction from circuits into platform-standard artifacts.
 4. Fixed decoding-graph construction that downstream decoders can consume through stable platform objects.
 5. Stim-based syndrome sampling normalized into a standard `SyndromeBatch`.
-6. External decoder integration for MWPM and BP+OSD through common ecosystem packages instead of in-repo decoder reimplementation.
-7. Custom decoder hooks that let user-defined decoders join the same end-to-end pipeline and analysis flow.
+6. Stim-compatible Pauli noise presets, including toy, toy phenomenological, SD6, and SI1000-without-leakage models.
+7. External decoder integration for MWPM and BP+OSD through common ecosystem packages instead of in-repo decoder reimplementation.
+8. Custom decoder hooks that let user-defined decoders join the same end-to-end pipeline and analysis flow.
 
 ## Stage 1 Backbone
 

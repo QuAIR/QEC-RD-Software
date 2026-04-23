@@ -28,32 +28,34 @@ def build_decoding_graph(dem_artifact: DemArtifact) -> DecodingGraph:
     edge_fault_ids: list[int] = []
     column = 0
 
-    for instruction in dem:
+    for instruction in dem.flattened():
         if instruction.type != "error":
             continue
-        detectors: list[int] = []
-        observables: list[int] = []
+        components: list[tuple[list[int], list[int]]] = [([], [])]
         for target in instruction.targets_copy():
             if target.is_relative_detector_id():
-                detectors.append(target.val)
+                components[-1][0].append(target.val)
             elif target.is_logical_observable_id():
-                observables.append(target.val)
-        if not detectors:
-            continue
-        if len(detectors) > 2:
-            raise UnsupportedDemError(
-                "Stage 1 only supports graphlike DEM terms with up to two detectors."
-            )
+                components[-1][1].append(target.val)
+            elif target.is_separator():
+                components.append(([], []))
         error_probability = float(instruction.args_copy()[0])
-        for detector in detectors:
-            row_indices.append(detector)
-            col_indices.append(column)
-            data.append(1)
-        for observable in observables:
-            obs_pairs.append((observable, column))
-        error_probabilities.append(error_probability)
-        edge_fault_ids.append(column)
-        column += 1
+        for detectors, observables in components:
+            if not detectors and not observables:
+                continue
+            if len(detectors) > 2:
+                raise UnsupportedDemError(
+                    "Stage 1 only supports graphlike DEM terms with up to two detectors."
+                )
+            for detector in detectors:
+                row_indices.append(detector)
+                col_indices.append(column)
+                data.append(1)
+            for observable in observables:
+                obs_pairs.append((observable, column))
+            error_probabilities.append(error_probability)
+            edge_fault_ids.append(column)
+            column += 1
 
     check_matrix = csc_matrix(
         (data, (row_indices, col_indices)),

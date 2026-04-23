@@ -10,7 +10,7 @@ from qec_rd.core.builtin_codes import (
 )
 from qec_rd.core.codes import CodeSpec
 from qec_rd.core.experiments import ExperimentConfig, ExperimentResult
-from qec_rd.core.noise import NoiseModel
+from qec_rd.core.noise import NoiseModel, noise_model_from_spec
 from qec_rd.core.results import AnalysisReport, DecodeResult, SyndromeBatch
 from qec_rd.core.types import (
     CircuitSourceKind,
@@ -43,4 +43,5 @@ __all__ = [
     "UnsupportedDemError",
     "UnrotatedSurfaceCode",
     "builtin_code_from_spec",
+    "noise_model_from_spec",
 ]

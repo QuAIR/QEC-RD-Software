@@ -1,5 +1,5 @@
 """Thin Stage 1 public API exposing pipeline and runner entry points."""
-from qec_rd.core import CodeSpec, ExperimentConfig, ExperimentResult, NoiseModel
+from qec_rd.core import CodeSpec, ExperimentConfig, ExperimentResult, NoiseModel, noise_model_from_spec
 from qec_rd.kernel.analysis import analyze_results
 from qec_rd.kernel.circuit import build_circuit, load_circuit
 from qec_rd.kernel.decode import normalize_custom_decode_result, run_decoder
@@ -22,4 +22,5 @@ __all__ = [
     "ExperimentConfig",
     "ExperimentResult",
     "NoiseModel",
+    "noise_model_from_spec",
 ]
