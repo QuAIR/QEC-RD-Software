@@ -99,11 +99,18 @@ def test_noise_model_named_presets_map_to_stage1_stim_channels():
         before_measure_flip_probability=0.01,
         after_reset_flip_probability=0.01,
     )
-    assert NoiseModel.si1000(p=0.01) == NoiseModel(
+    assert NoiseModel.stim_circuit_level_si1000(p=0.01) == NoiseModel(
         after_clifford_depolarization=0.01,
         before_round_data_depolarization=0.001,
         before_measure_flip_probability=0.05,
         after_reset_flip_probability=0.02,
+    )
+    assert NoiseModel.si1000(p=0.01) == NoiseModel(
+        after_clifford_depolarization=0.01,
+        before_measure_flip_probability=0.05,
+        after_reset_flip_probability=0.02,
+        idle_depolarization=0.001,
+        resonator_idle_depolarization=0.02,
     )
 
 
