@@ -7,7 +7,8 @@
 [![CI](https://github.com/QuAIR/QEC-RD-Software/actions/workflows/ci.yml/badge.svg)](https://github.com/QuAIR/QEC-RD-Software/actions/workflows/ci.yml)
 [![Coverage](https://github.com/QuAIR/QEC-RD-Software/actions/workflows/coverage.yml/badge.svg)](https://github.com/QuAIR/QEC-RD-Software/actions/workflows/coverage.yml)
 [![codecov](https://codecov.io/gh/QuAIR/QEC-RD-Software/branch/main/graph/badge.svg)](https://codecov.io/gh/QuAIR/QEC-RD-Software)
-[![Docs](https://github.com/QuAIR/QEC-RD-Software/actions/workflows/docs.yml/badge.svg)](https://github.com/QuAIR/QEC-RD-Software/actions/workflows/docs.yml)
+[![Docs Build](https://github.com/QuAIR/QEC-RD-Software/actions/workflows/docs.yml/badge.svg)](https://github.com/QuAIR/QEC-RD-Software/actions/workflows/docs.yml)
+[![Documentation](https://img.shields.io/badge/docs-online-blue)](https://quair.github.io/QEC-RD-Software/)
 
 QEC-RD-Software is a local research and engineering backbone for quantum error correction (QEC). It connects circuit construction, detector-error-model (DEM) extraction, syndrome sampling, decoding, and analysis behind a small Python API.
 
@@ -87,6 +88,11 @@ Build the docs locally with:
 ```powershell
 mkdocs build --strict
 ```
+
+The published documentation site is:
+
+- [QEC-RD-Software Docs](https://quair.github.io/QEC-RD-Software/)
+- [API Reference](https://quair.github.io/QEC-RD-Software/api/)
 
 ## Public API Map
 

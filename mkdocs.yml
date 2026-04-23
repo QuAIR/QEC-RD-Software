@@ -2,6 +2,7 @@ site_name: QEC-RD-Software
 site_description: Research and engineering backbone for quantum error correction workflows.
 repo_url: https://github.com/QuAIR/QEC-RD-Software
 repo_name: QuAIR/QEC-RD-Software
+site_url: https://quair.github.io/QEC-RD-Software/
 docs_dir: docs
 site_dir: site
 use_directory_urls: true
@@ -22,6 +23,11 @@ nav:
       - Importing Stim Circuits: superpowers/skills/qec-rd-importing-stim-circuits/SKILL.md
       - Integrating Custom Decoders: superpowers/skills/qec-rd-integrating-custom-decoders/SKILL.md
       - Stage 1 Guardrails: superpowers/skills/qec-rd-stage1-guardrails/SKILL.md
+  - API Reference:
+      - Overview: api/index.md
+      - Public API: api/public-api.md
+      - Core Models: api/core.md
+      - Kernel Modules: api/kernel.md
   - Stage 1 Backbone:
       - English Spec: superpowers/specs/2026-04-20-qec-rd-platform-backbone-design-en.md
       - Chinese Spec: superpowers/specs/2026-04-20-qec-rd-platform-backbone-design.md
@@ -31,6 +37,19 @@ nav:
 
 theme:
   name: mkdocs
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths:
+            - src
+          options:
+            show_source: false
+            show_root_heading: true
+            show_root_full_path: false
+            docstring_style: google
 
 markdown_extensions:
   - admonition
