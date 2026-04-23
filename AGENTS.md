@@ -27,6 +27,9 @@ Agents must assume the following unless explicitly told otherwise:
 
 - backend is only `stim`
 - built-in circuit-catalog targets include repetition, rotated surface, unrotated surface, and toric
+- never use `stim.Circuit.generated(...)` as the implementation path for rotated surface, unrotated surface, or toric built-ins
+- built-in surface and toric families must be platform-owned code objects plus platform-owned circuit construction
+- repetition code is the only family where `stim.Circuit.generated(...)` may be tolerated for compatibility, but platform-owned objects are still preferred
 - user-facing customization happens through circuit import and downstream analysis/decoder hooks, not arbitrary code-definition input
 - Stage 1 should expose both the direct pipeline API and a DeltaKit-style runner API
 - non-Pauli noise is out of scope
@@ -143,6 +146,7 @@ Agents in this repo should:
 - implement the Stage 1 backbone, not reinvent the roadmap
 - keep `stim` as the only runtime backend
 - support built-in repetition/surface/toric circuit generation plus imported circuits
+- keep built-in surface/toric generation platform-owned instead of routing through `stim.Circuit.generated(...)`
 - use external decoder packages
 - keep DEM / graph logic fixed in Stage 1
 - preserve end-to-end flow

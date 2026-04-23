@@ -99,4 +99,8 @@ tmp/
 temp/
 
 .cursor/*
+.claude/*
 .worktrees/
+
+# Agent monitor runtime state
+scripts/.monitor_state.json

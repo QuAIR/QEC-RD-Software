@@ -42,6 +42,9 @@ In addition:
 - `CodeSpec` should act as a built-in circuit selector/config object, not as a general user-defined code-definition interface
 - user-facing research entry should center on circuits: generated built-in circuits or imported external circuits
 - the built-in catalog should be extensible so future built-in families can be added without changing the backbone
+- built-in surface and toric circuits should be generated through platform-owned code objects and platform-owned circuit builders, not through `stim.Circuit.generated(...)`
+- `stim.Circuit.generated(...)` is not an acceptable shortcut for rotated surface, unrotated surface, or toric built-ins in Stage 1
+- repetition code is the only family where `stim.Circuit.generated(...)` can be considered for narrow compatibility reasons, but a platform-owned object model is still preferred
 
 ### Noise model
 
