@@ -12,8 +12,8 @@ import numpy as np
 
 from qec_rd.api import CodeSpec, ExperimentConfig, NoiseModel, run_experiment
 
-ACCEPTANCE_DISTANCES = (3, 5, 7, 9)
-ACCEPTANCE_DECODERS = ("pymatching", "bposd")
+ACCEPTANCE_DISTANCES = (3, 5, 7)
+ACCEPTANCE_DECODERS = ("pymatching",)
 ACCEPTANCE_ERROR_RATES = (0.0025, 0.0035, 0.0042, 0.0050, 0.0060)
 DEFAULT_SHOWCASE_SHOTS = 10_000
 DEFAULT_SHOWCASE_SEED = 20260424

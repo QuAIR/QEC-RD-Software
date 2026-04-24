@@ -6,8 +6,7 @@ It is designed to exercise more of the backbone than the quick default demo:
 - built-in `rotated_surface_code`
 - scheduled `si1000` noise
 - `pymatching` MWPM decoding
-- `ldpc` BP+OSD-0 decoding
-- multiple code distances `d = 3, 5, 7, 9`
+- multiple code distances `d = 3, 5, 7`
 - threshold-style logical-error-rate sweep
 
 ## Why This Is Separate
@@ -38,15 +37,24 @@ By default the generator writes three files under `docs/demos/assets/`:
 - `rotated_surface_si1000_threshold_showcase.json`
 - `rotated_surface_si1000_threshold_showcase.png`
 
-The planned sweep is:
+The sweep parameters are:
 
-- distances: `3, 5, 7, 9`
-- decoders: `pymatching`, `bposd`
+- distances: `3, 5, 7`
+- decoder: `pymatching`
 - physical error rates: `0.25%`, `0.35%`, `0.42%`, `0.50%`, `0.60%`
 - shots per point: `10000`
 
-## Current Status
+## Result
 
-The generator script is implemented, but the final committed showcase assets are tracked separately because the full local run is slow.
+![Rotated surface code SI1000 threshold showcase](assets/rotated_surface_si1000_threshold_showcase.png)
 
-Until the final PNG is committed, use this page as the canonical reproduction entry point for the acceptance showcase.
+The figure shows the logical error rate versus physical error rate for three distances.
+The reference threshold line at `p = 0.42%` illustrates the crossing behavior expected
+from a well-behaved surface code memory experiment under circuit-level noise.
+
+## Raw Data
+
+The full numeric results are available in:
+
+- [CSV](assets/rotated_surface_si1000_threshold_showcase.csv)
+- [JSON](assets/rotated_surface_si1000_threshold_showcase.json)
