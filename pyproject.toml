@@ -27,6 +27,9 @@ docs = [
     "mkdocstrings[python]>=0.25",
 ]
 
+[project.scripts]
+qec-rd-demo = "qec_rd.demo:main"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 

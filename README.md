@@ -16,6 +16,27 @@ Stage 1 is intentionally focused: `stim` is the only runtime backend, DEM/graph 
 
 Live documentation: [quairkit.com/QEC-RD-Software](https://quairkit.com/QEC-RD-Software/)
 
+## Evaluation Prompt
+
+```text
+Run one complete end-to-end demo for this repo from the repo root, installing dependencies if needed.
+Verify it works and briefly summarize the pipeline exercised and the result.
+```
+
+## Official Default Demo
+
+From the repository root, the default evaluation path is:
+
+```powershell
+python -m qec_rd.demo
+```
+
+If the editable install has been completed, the equivalent short command is:
+
+```powershell
+qec-rd-demo
+```
+
 ## Why This Repo Exists
 
 Many QEC experiments start as separate scripts: one script builds a circuit, another extracts a DEM, another runs a decoder, and another analyzes logical failures. This project turns that workflow into a stable object chain:

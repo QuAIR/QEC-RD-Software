@@ -7,6 +7,16 @@ Each demo exercises the same platform object flow:
 
 The demos are intentionally small so they can run locally during review.
 
+## Recommended First Demo
+
+For evaluation or first-contact onboarding, start with the official default demo:
+
+```powershell
+python -m qec_rd.demo
+```
+
+It runs the most stable built-in path in Stage 1: repetition memory circuit generation, DEM extraction, decoding-graph construction, syndrome sampling, MWPM decoding through `pymatching`, and analysis reporting.
+
 ## Demo Set
 
 1. [Built-in repetition memory experiment](builtin-repetition-memory.md)
@@ -24,8 +34,8 @@ python -m pip install --upgrade pip
 python -m pip install -e ".[dev]"
 ```
 
-Then run any demo snippet with:
+Then run the official default demo with:
 
 ```powershell
-python demo.py
+python -m qec_rd.demo
 ```
