@@ -39,6 +39,25 @@ qec-rd-demo
 
 The default evaluation demo uses `rotated_surface_code` with scheduled SI1000-style noise, MWPM decoding through `pymatching`, and `1000` shots.
 
+## Acceptance Showcase
+
+For a heavier acceptance-oriented sweep that compares `MWPM` and `BP+OSD-0`
+over `d = 3, 5, 7, 9` with scheduled `si1000`, use:
+
+```powershell
+python -m qec_rd.showcase
+```
+
+Or, after editable install:
+
+```powershell
+qec-rd-showcase
+```
+
+This generator writes `csv/json/png` assets into `docs/demos/assets/`.
+It is intentionally slower than the quick default demo and is meant for
+producing the final acceptance-style figure rather than first-contact onboarding.
+
 ## Why This Repo Exists
 
 Many QEC experiments start as separate scripts: one script builds a circuit, another extracts a DEM, another runs a decoder, and another analyzes logical failures. This project turns that workflow into a stable object chain:
@@ -107,6 +126,7 @@ The docs include five acceptance demos that validate the design:
 - [Imported Stim circuit pipeline](docs/demos/imported-stim-circuit.md)
 - [Custom decoder hook](docs/demos/custom-decoder-hook.md)
 - [Parameter sweep and analysis report](docs/demos/sweep-analysis-report.md)
+- [Acceptance showcase generator](docs/demos/acceptance-showcase.md)
 
 Build the docs locally with:
 

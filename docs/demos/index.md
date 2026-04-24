@@ -7,6 +7,10 @@ Each demo exercises the same platform object flow:
 
 The demos are intentionally small so they can run locally during review.
 
+For a heavier acceptance-oriented sweep that compares `pymatching` and `bposd`
+on rotated surface code with scheduled SI1000 noise, see the
+[Acceptance showcase](acceptance-showcase.md).
+
 ## Recommended First Demo
 
 For evaluation or first-contact onboarding, start with the official default demo:
@@ -24,6 +28,7 @@ It runs the Stage 1 built-in rotated-surface path with scheduled SI1000-style no
 3. [Imported Stim circuit pipeline](imported-stim-circuit.md)
 4. [Custom decoder hook](custom-decoder-hook.md)
 5. [Parameter sweep and analysis report](sweep-analysis-report.md)
+6. [Acceptance showcase generator](acceptance-showcase.md)
 
 ## Before You Run
 

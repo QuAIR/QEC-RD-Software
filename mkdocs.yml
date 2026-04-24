@@ -16,6 +16,7 @@ nav:
       - Imported Stim Circuit: demos/imported-stim-circuit.md
       - Custom Decoder Hook: demos/custom-decoder-hook.md
       - Sweep and Analysis Report: demos/sweep-analysis-report.md
+      - Acceptance Showcase: demos/acceptance-showcase.md
   - Repo Skills:
       - Overview: superpowers/skills/index.md
       - Demo Selection: superpowers/skills/qec-rd-importing-stim-circuits/SKILL.md

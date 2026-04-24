@@ -21,6 +21,7 @@ dev = [
     "pytest-cov>=5",
     "pymatching>=2.2",
     "ldpc>=2.3",
+    "matplotlib>=3.8",
 ]
 docs = [
     "mkdocs>=1.6",
@@ -29,6 +30,7 @@ docs = [
 
 [project.scripts]
 qec-rd-demo = "qec_rd.demo:main"
+qec-rd-showcase = "qec_rd.showcase:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
