@@ -9,15 +9,12 @@ use_directory_urls: true
 
 nav:
   - Home: index.md
-  - Repo Skills:
-      - Overview: superpowers/skills/index.md
-      - Beginner Onboarding: superpowers/skills/qec-rd-beginner-ler-onboarding/SKILL.md
   - API Reference:
       - Overview: api/index.md
       - Public API: api/public-api.md
       - Core Models: api/core.md
       - Kernel Modules: api/kernel.md
-  - Stage 1 Backbone:
+  - Platform Backbone:
       - English Spec: superpowers/specs/2026-04-20-qec-rd-platform-backbone-design-en.md
       - Chinese Spec: superpowers/specs/2026-04-20-qec-rd-platform-backbone-design.md
       - Implementation Plan: superpowers/plans/2026-04-20-qec-rd-stage1-backbone-implementation.md

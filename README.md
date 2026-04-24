@@ -12,14 +12,14 @@
 
 QEC-RD-Software is a local research and engineering backbone for quantum error correction (QEC). It connects circuit construction, detector-error-model (DEM) extraction, syndrome sampling, decoding, and analysis behind a small Python API.
 
-Stage 1 is intentionally focused: `stim` is the only runtime backend, DEM/graph logic is platform-owned, non-Pauli runtime noise is out of scope, and decoders come from external packages or custom decoder hooks.
+The current platform is intentionally focused: `stim` is the only runtime backend, DEM/graph logic is platform-owned, non-Pauli runtime noise is out of scope, and decoders come from external packages or custom decoder hooks.
 
 Live documentation: [quairkit.com/QEC-RD-Software](https://quairkit.com/QEC-RD-Software/)
 
 ## Evaluation Prompt
 
 ```text
-Read the QEC-RD beginner onboarding skill and follow it.
+Read the repo-root onboard/SKILL.md skill and follow it.
 ```
 
 ## Why This Repo Exists
@@ -53,7 +53,7 @@ If you are new to QEC-RD-Software, the beginner path is:
 
 The repo-local skill for that path is:
 
-- [QEC-RD beginner onboarding skill](docs/superpowers/skills/qec-rd-beginner-ler-onboarding/SKILL.md)
+- [QEC-RD beginner onboarding skill](onboard/SKILL.md)
 
 ## Install
 
@@ -70,11 +70,11 @@ If you only want to run the package without docs tooling:
 python -m pip install -e ".[dev]"
 ```
 
-## What You Can Choose In Stage 1
+## What You Can Choose
 
 ### Codes
 
-Stage 1 has a built-in circuit catalog for:
+The platform has a built-in circuit catalog for:
 
 - `repetition_code:memory`
 - `rotated_surface_code`
@@ -85,7 +85,7 @@ For beginners, the recommended first code is `rotated_surface_code`.
 
 ### Noise Models
 
-Stage 1 keeps noise limited to Stim-executable Pauli-style presets:
+The current runtime keeps noise limited to Stim-executable Pauli-style presets:
 
 - `toy`
 - `toy_phenomenological`
@@ -97,7 +97,7 @@ For beginners, the recommended first noise preset is `si1000`.
 
 ### Decoders
 
-Stage 1 supports external decoder adapters and custom hooks:
+The platform supports external decoder adapters and custom hooks:
 
 - `pymatching` for MWPM
 - `bposd` through `ldpc`
@@ -150,7 +150,7 @@ This quick path runs:
 The command above means:
 
 - build a built-in rotated surface memory circuit
-- inject one of the repo's Stage 1 noise presets
+- inject one of the repo's built-in noise presets
 - extract the detector error model and decoding graph
 - sample noisy syndrome data
 - decode with MWPM
@@ -289,21 +289,21 @@ Before changing architecture or public behavior, read:
 
 - [AGENTS.md](AGENTS.md) for agent and contributor rules
 - [CODEX.md](CODEX.md) for the working contract
-- [Stage 1 backbone design](docs/superpowers/specs/2026-04-20-qec-rd-platform-backbone-design-en.md)
+- [Platform backbone design](docs/superpowers/specs/2026-04-20-qec-rd-platform-backbone-design-en.md)
 - [Three-person execution plan](docs/superpowers/plans/2026-04-21-qec-rd-stage1-3person-execution.md)
 
 Agent skills for common tasks:
 
-- [Beginner onboarding](docs/superpowers/skills/qec-rd-beginner-ler-onboarding/SKILL.md)
+- [Beginner onboarding](onboard/SKILL.md)
 
-Keep Stage 1 changes small and testable. Do not add non-Pauli runtime behavior, do not make DEM/graph construction user-customizable, and do not reimplement external decoders inside this repo.
+Keep changes small and testable. Do not add non-Pauli runtime behavior, do not make DEM/graph construction user-customizable, and do not reimplement external decoders inside this repo.
 
 ## Current Limitations
 
 - Runtime backend is `stim` only.
-- Surface and toric circuits are platform-owned Stage 1 implementations.
-- DEM and graph behavior are fixed in Stage 1.
-- Non-Pauli noise and leakage are outside Stage 1 runtime scope.
+- Surface and toric circuits are platform-owned implementations.
+- DEM and graph behavior are fixed by the platform.
+- Non-Pauli noise and leakage are outside the current runtime scope.
 - Coverage reports are uploaded to Codecov and available as workflow artifacts.
 
 ## Team

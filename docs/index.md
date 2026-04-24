@@ -22,7 +22,7 @@ onboarding entry point and now teaches:
 - where to find the fixed acceptance showcase
 
 Agents that are following the beginner onboarding flow should also use the
-repo-local onboarding skill instead of the old demo sequence.
+repo-root onboarding skill at `onboard/SKILL.md` instead of the old demo sequence.
 
 Developers should also read the Stage 1 backbone specs and execution plans in this documentation site to understand the architecture, current boundaries, and collaboration model.
 
