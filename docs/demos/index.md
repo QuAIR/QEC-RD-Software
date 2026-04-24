@@ -15,7 +15,7 @@ For evaluation or first-contact onboarding, start with the official default demo
 python -m qec_rd.demo
 ```
 
-It runs the most stable built-in path in Stage 1: repetition memory circuit generation, DEM extraction, decoding-graph construction, syndrome sampling, MWPM decoding through `pymatching`, and analysis reporting.
+It runs the Stage 1 built-in rotated-surface path with scheduled SI1000-style noise, DEM extraction, decoding-graph construction, syndrome sampling, MWPM decoding through `pymatching`, and analysis reporting over 1000 shots.
 
 ## Demo Set
 

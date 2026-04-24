@@ -37,6 +37,8 @@ If the editable install has been completed, the equivalent short command is:
 qec-rd-demo
 ```
 
+The default evaluation demo uses `rotated_surface_code` with scheduled SI1000-style noise, MWPM decoding through `pymatching`, and `1000` shots.
+
 ## Why This Repo Exists
 
 Many QEC experiments start as separate scripts: one script builds a circuit, another extracts a DEM, another runs a decoder, and another analyzes logical failures. This project turns that workflow into a stable object chain:
