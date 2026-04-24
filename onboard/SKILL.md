@@ -12,6 +12,8 @@ This skill uses `README.md` as the live teaching script.
 Core principle: show the README, follow its structure, and get a beginner to
 one successful `LER` run before moving on.
 
+Repository URL: `https://github.com/QuAIR/QEC-RD-Software`
+
 ## When To Use
 
 Use this skill when:
