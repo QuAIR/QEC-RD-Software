@@ -12,6 +12,15 @@
 
 QEC-RD-Software is a local research and engineering backbone for quantum error correction (QEC). It connects circuit construction, detector-error-model (DEM) extraction, syndrome sampling, decoding, and analysis behind a small Python API.
 
+Its goal is to provide a standard research workflow built from three explicit pieces:
+
+- code circuit
+- noise model
+- decoder
+
+so that users can run reproducible QEC studies through one consistent pipeline
+instead of stitching together separate scripts by hand.
+
 The current platform is intentionally focused: `stim` is the only runtime backend, DEM/graph logic is platform-owned, non-Pauli runtime noise is out of scope, and decoders come from external packages or custom decoder hooks.
 
 Live documentation: [quairkit.com/QEC-RD-Software](https://quairkit.com/QEC-RD-Software/)
@@ -29,6 +38,10 @@ Many QEC experiments start as separate scripts: one script builds a circuit, ano
 `CodeSpec -> CircuitArtifact -> DemArtifact -> DecodingGraph -> SyndromeBatch -> DecodeResult -> AnalysisReport`
 
 That object chain is the shared language for users, researchers, and future engineering contributors.
+
+Our intended validation standard is that the workflow should agree with the
+corresponding results reported in typical QEC papers for the same code,
+noise model, and decoder setting.
 
 ## Main Features
 
@@ -212,6 +225,12 @@ qec-rd-showcase
 The committed acceptance figure:
 
 ![Acceptance showcase](docs/assets/rotated_surface_si1000_threshold_showcase.png)
+
+This example is meant to show that the standard workflow is producing the
+expected reference behavior. In particular, the displayed
+`rotated_surface_code + si1000 + MWPM` experiment matches the standard
+threshold scale of about `0.42%`, which is the correct benchmark-style result
+for this acceptance example.
 
 Raw data:
 
