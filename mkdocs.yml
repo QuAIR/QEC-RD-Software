@@ -9,22 +9,9 @@ use_directory_urls: true
 
 nav:
   - Home: index.md
-  - End-to-End Demos:
-      - Overview: demos/index.md
-      - Demo 1 - Code Keyword: demos/builtin-repetition-memory.md
-      - Demo 2 - Noise Keyword: demos/rotated-surface-si1000.md
-      - Demo 3 - Decoder and Target Keywords: demos/custom-decoder-hook.md
-      - Demo 4 - Full Experiment Description: demos/sweep-analysis-report.md
-      - Demo 5 - Acceptance Showcase: demos/acceptance-showcase.md
-      - Supplement - Imported Stim Circuit: demos/imported-stim-circuit.md
   - Repo Skills:
       - Overview: superpowers/skills/index.md
-      - Beginner LER Onboarding: superpowers/skills/qec-rd-beginner-ler-onboarding/SKILL.md
-      - Demo Selection: superpowers/skills/qec-rd-importing-stim-circuits/SKILL.md
-      - Experiment Design: superpowers/skills/qec-rd-running-memory-experiments/SKILL.md
-      - Decoder Choice: superpowers/skills/qec-rd-integrating-custom-decoders/SKILL.md
-      - Result Sanity Check: superpowers/skills/qec-rd-stage1-guardrails/SKILL.md
-      - Review Presentation: superpowers/skills/qec-rd-acceptance/SKILL.md
+      - Beginner Onboarding: superpowers/skills/qec-rd-beginner-ler-onboarding/SKILL.md
   - API Reference:
       - Overview: api/index.md
       - Public API: api/public-api.md

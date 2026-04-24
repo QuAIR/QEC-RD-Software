@@ -19,48 +19,8 @@ Live documentation: [quairkit.com/QEC-RD-Software](https://quairkit.com/QEC-RD-S
 ## Evaluation Prompt
 
 ```text
-From the repo root, use the guided demos to teach a beginner how to run one logical-error-rate experiment with this package, installing dependencies if needed and briefly reporting the result.
+Read the QEC-RD beginner onboarding skill and follow it.
 ```
-
-## Official Default Demo
-
-From the repository root, the default evaluation path is:
-
-```powershell
-python -m qec_rd.demo
-```
-
-If the editable install has been completed, the equivalent short command is:
-
-```powershell
-qec-rd-demo
-```
-
-The default evaluation demo uses `rotated_surface_code` with scheduled SI1000-style noise, MWPM decoding through `pymatching`, and `1000` shots.
-
-## Acceptance Showcase
-
-For a heavier acceptance-oriented sweep over `d = 3, 5, 7` with scheduled
-`si1000` and `pymatching`, use:
-
-```powershell
-python -m qec_rd.showcase
-```
-
-Or, after editable install:
-
-```powershell
-qec-rd-showcase
-```
-
-The committed acceptance figure:
-
-![Acceptance showcase](docs/demos/assets/rotated_surface_si1000_threshold_showcase.png)
-
-The generator writes `csv/json/png` assets into `docs/demos/assets/`.
-It is intentionally slower than the quick default demo and is meant for
-producing the final acceptance-style figure rather than first-contact onboarding.
-Full reproduction instructions are in [`docs/demos/acceptance-showcase.md`](docs/demos/acceptance-showcase.md).
 
 ## Why This Repo Exists
 
@@ -81,6 +41,20 @@ That object chain is the shared language for users, researchers, and future engi
 - Custom decoder hooks that return the same `DecodeResult` shape.
 - Analysis reports with logical error rate, failure counts, and per-logical summaries.
 
+## Beginner Onboarding
+
+If you are new to QEC-RD-Software, the beginner path is:
+
+1. install the package
+2. understand the four keywords used by this repo:
+   `code`, `noise`, `decoder`, `target`
+3. run one logical-error-rate (`LER`) experiment
+4. only then look at the heavier acceptance showcase
+
+The repo-local skill for that path is:
+
+- [QEC-RD beginner onboarding skill](docs/superpowers/skills/qec-rd-beginner-ler-onboarding/SKILL.md)
+
 ## Install
 
 From the repository root:
@@ -96,23 +70,109 @@ If you only want to run the package without docs tooling:
 python -m pip install -e ".[dev]"
 ```
 
-## First Experiment
+## What You Can Choose In Stage 1
 
-This runs a complete built-in repetition-code memory experiment with MWPM decoding:
+### Codes
+
+Stage 1 has a built-in circuit catalog for:
+
+- `repetition_code:memory`
+- `rotated_surface_code`
+- `unrotated_surface_code`
+- `toric_code`
+
+For beginners, the recommended first code is `rotated_surface_code`.
+
+### Noise Models
+
+Stage 1 keeps noise limited to Stim-executable Pauli-style presets:
+
+- `toy`
+- `toy_phenomenological`
+- `sd6`
+- `si1000`
+- `stim_circuit_level_si1000`
+
+For beginners, the recommended first noise preset is `si1000`.
+
+### Decoders
+
+Stage 1 supports external decoder adapters and custom hooks:
+
+- `pymatching` for MWPM
+- `bposd` through `ldpc`
+- `custom` via `decoder_fn`
+
+For beginners, the recommended first decoder is `pymatching`.
+
+### Targets
+
+For beginner usage, think in terms of two analysis targets:
+
+- `ler`: one configured experiment returning a logical error rate
+- `threshold`: a heavier multi-distance sweep
+
+The beginner path should stop at one successful `LER` run.
+
+## First Logical-Error-Rate Experiment
+
+This is the recommended first successful run for a new user. It uses the four
+beginner keywords in their default form:
+
+- `code = rotated_surface_code`
+- `noise = si1000`
+- `decoder = pymatching`
+- `target = ler`
+
+### Quickest Path
+
+From the repository root:
+
+```powershell
+python -m qec_rd.demo
+```
+
+If the editable install has been completed, the equivalent short command is:
+
+```powershell
+qec-rd-demo
+```
+
+This quick path runs:
+
+- built-in `rotated_surface_code`
+- scheduled `si1000` noise
+- MWPM decoding through `pymatching`
+- `1000` shots
+
+### Plain-Language Meaning
+
+The command above means:
+
+- build a built-in rotated surface memory circuit
+- inject one of the repo's Stage 1 noise presets
+- extract the detector error model and decoding graph
+- sample noisy syndrome data
+- decode with MWPM
+- report one logical error rate
+
+### Equivalent API Example
+
+This is the same beginner path through the public API:
 
 ```python
 from qec_rd.api import CodeSpec, ExperimentConfig, NoiseModel, run_experiment
 
 config = ExperimentConfig(
     code_spec=CodeSpec(
-        family="repetition_code:memory",
+        family="rotated_surface_code",
         distance=3,
         rounds=3,
         logical_basis="Z",
     ),
-    noise_spec=NoiseModel(after_clifford_depolarization=0.001),
+    noise_spec=NoiseModel.si1000(p=0.001),
     decoder_spec={"name": "pymatching"},
-    sim_spec={"shots": 100, "seed": 7},
+    sim_spec={"shots": 1000, "seed": 11},
 )
 
 result = run_experiment(config)
@@ -121,19 +181,42 @@ print(result.analysis_report.shot_count)
 print(result.analysis_report.logical_error_rate)
 ```
 
-## End-to-End Demos
+After it finishes, a valid beginner outcome is simply:
 
-The docs now present five demos as a progressive onboarding path:
+- the run completes
+- the shot count is reported
+- the `logical_error_rate` is between `0.0` and `1.0`
 
-- [Demo 1: What counts as a code here?](docs/demos/builtin-repetition-memory.md)
-- [Demo 2: What counts as a noise model here?](docs/demos/rotated-surface-si1000.md)
-- [Demo 3: What counts as a decoder and a target?](docs/demos/custom-decoder-hook.md)
-- [Demo 4: How a full experiment description is assembled](docs/demos/sweep-analysis-report.md)
-- [Demo 5: Acceptance showcase](docs/demos/acceptance-showcase.md)
+## Acceptance Showcase
 
-Supplementary material:
+After the beginner `LER` path is understood, the fixed acceptance showcase is:
 
-- [Imported Stim circuit pipeline](docs/demos/imported-stim-circuit.md)
+- `rotated_surface_code`
+- distances `d = 3, 5, 7`
+- scheduled `si1000`
+- `pymatching` / MWPM
+- `10000` shots per point
+
+To regenerate it from the repository root:
+
+```powershell
+python -m qec_rd.showcase
+```
+
+Or, after editable install:
+
+```powershell
+qec-rd-showcase
+```
+
+The committed acceptance figure:
+
+![Acceptance showcase](docs/assets/rotated_surface_si1000_threshold_showcase.png)
+
+Raw data:
+
+- [CSV](docs/assets/rotated_surface_si1000_threshold_showcase.csv)
+- [JSON](docs/assets/rotated_surface_si1000_threshold_showcase.json)
 
 Build the docs locally with:
 
@@ -144,7 +227,6 @@ mkdocs build --strict
 Documentation entry points in this repository:
 
 - [Docs Home](docs/index.md)
-- [End-to-End Demos](docs/demos/index.md)
 - [API Reference](docs/api/index.md)
 
 Latest generated documentation artifact:
@@ -212,12 +294,7 @@ Before changing architecture or public behavior, read:
 
 Agent skills for common tasks:
 
-- [Beginner LER onboarding](docs/superpowers/skills/qec-rd-beginner-ler-onboarding/SKILL.md)
-- [Acceptance testing](docs/superpowers/skills/qec-rd-acceptance/SKILL.md)
-- [Importing Stim circuits](docs/superpowers/skills/qec-rd-importing-stim-circuits/SKILL.md)
-- [Integrating custom decoders](docs/superpowers/skills/qec-rd-integrating-custom-decoders/SKILL.md)
-- [Running memory experiments](docs/superpowers/skills/qec-rd-running-memory-experiments/SKILL.md)
-- [Stage 1 guardrails](docs/superpowers/skills/qec-rd-stage1-guardrails/SKILL.md)
+- [Beginner onboarding](docs/superpowers/skills/qec-rd-beginner-ler-onboarding/SKILL.md)
 
 Keep Stage 1 changes small and testable. Do not add non-Pauli runtime behavior, do not make DEM/graph construction user-customizable, and do not reimplement external decoders inside this repo.
 

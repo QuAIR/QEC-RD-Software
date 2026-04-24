@@ -13,7 +13,16 @@ The current platform focuses on a Stim-based workflow:
 
 ## Start Here
 
-New users should start with the [end-to-end demos](demos/index.md). They show the full path from circuit construction or import to DEM extraction, sampling, decoding, and analysis.
+New users should start with the repository `README.md`. It is the primary
+onboarding entry point and now teaches:
+
+- what the package can do
+- which built-in codes, noise models, decoders, and targets exist
+- how to run one beginner logical-error-rate experiment
+- where to find the fixed acceptance showcase
+
+Agents that are following the beginner onboarding flow should also use the
+repo-local onboarding skill instead of the old demo sequence.
 
 Developers should also read the Stage 1 backbone specs and execution plans in this documentation site to understand the architecture, current boundaries, and collaboration model.
 
