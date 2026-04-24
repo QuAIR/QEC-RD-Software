@@ -1,45 +1,72 @@
-# Demo 5: Parameter Sweep and Analysis Report
+# Demo 4: How a Full Experiment Description Is Assembled
 
-This demo validates the experiment-runner layer by sweeping over simulation shot counts and collecting analysis reports from each run.
+This fourth demo is the bridge from concepts to execution.
+It does not ask the user to make free choices. Instead, it shows how a simple
+natural-language-style description can be understood as four keyword slots:
 
-## What This Verifies
+- `code`
+- `noise`
+- `decoder`
+- `target`
 
-- DeltaKit-style runner orchestration through `ExperimentConfig`
-- Parameter sweep support
-- Repeated end-to-end execution
-- Analysis reports as the final user-facing research output
+For example, the phrase
+
+```text
+rotated surface code, si1000 noise, mwpm, ler
+```
+
+can be read as:
+
+- `code = rotated_surface_code`
+- `noise = si1000`
+- `decoder = pymatching`
+- `target = ler`
+
+## What This Demo Should Teach
+
+- The later acceptance demo is not magic; it is just a fixed experiment recipe.
+- A natural-language description can be normalized into `ExperimentConfig`.
+- `LER` maps to one experiment run.
+- `threshold` would map to a distance sweep instead of a single run.
 
 ## Run
 
 ```python
-from qec_rd.api import CodeSpec, ExperimentConfig, NoiseModel, sweep
+from qec_rd.api import CodeSpec, ExperimentConfig, NoiseModel, run_experiment
+
+keywords = {
+    "code": "rotated_surface_code",
+    "noise": "si1000",
+    "decoder": "pymatching",
+    "target": "ler",
+}
 
 config = ExperimentConfig(
     code_spec=CodeSpec(
-        family="repetition_code:memory",
+        family=keywords["code"],
         distance=3,
         rounds=3,
         logical_basis="Z",
     ),
-    noise_spec=NoiseModel(after_clifford_depolarization=0.001),
-    decoder_spec={"name": "pymatching"},
-    sim_spec={"shots": 16, "seed": 41},
+    noise_spec=NoiseModel.si1000(p=0.001),
+    decoder_spec={"name": keywords["decoder"]},
+    sim_spec={"shots": 100, "seed": 11},
 )
 
-results = sweep(config, "sim_spec.shots", [16, 32, 64])
+result = run_experiment(config)
 
-for result in results:
-    report = result.analysis_report
-    print(
-        "shots=",
-        report.shot_count,
-        "failures=",
-        report.failure_count,
-        "ler=",
-        report.logical_error_rate,
-    )
+print("keywords:", keywords)
+print("shots:", result.analysis_report.shot_count)
+print("logical_error_rate:", result.analysis_report.logical_error_rate)
 ```
 
 ## Expected Shape
 
-The printed shot counts should be `16`, `32`, and `64`. Each result should contain a circuit artifact, sampled syndrome batch, decode result, and analysis report.
+The printed keyword dictionary should match the experiment configuration, and
+the run should return a valid `logical_error_rate`.
+
+## What Comes Next
+
+The fifth and final demo stops being conceptual.
+It fixes the experiment recipe to the acceptance path and produces the actual
+review result.

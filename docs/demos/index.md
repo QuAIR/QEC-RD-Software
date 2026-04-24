@@ -1,34 +1,47 @@
 # End-to-End Demos
 
-These demos are acceptance-oriented examples for the Stage 1 QEC-RD backbone.
-Each demo exercises the same platform object flow:
+These demos are arranged as a guided path for a reader who does not yet know
+QEC terminology. The first four demos are progressive onboarding demos. They
+teach the meaning of four keyword categories:
+
+- `code`
+- `noise`
+- `decoder`
+- `target`
+
+The fifth demo is the heavier acceptance-oriented execution path.
+
+Every runnable demo in this section still exercises the same Stage 1 platform
+object flow:
 
 `CodeSpec -> CircuitArtifact -> DemArtifact -> DecodingGraph -> SyndromeBatch -> DecodeResult -> AnalysisReport`
 
-The demos are intentionally small so they can run locally during review.
-
-For a heavier acceptance-oriented sweep that compares `pymatching` and `bposd`
-on rotated surface code with scheduled SI1000 noise, see the
-[Acceptance showcase](acceptance-showcase.md).
+The onboarding demos are intentionally small so they can run locally during review.
 
 ## Recommended First Demo
 
-For evaluation or first-contact onboarding, start with the official default demo:
+For a first-contact walkthrough, read the demos in order:
 
-```powershell
-python -m qec_rd.demo
-```
+1. [What counts as a code?](builtin-repetition-memory.md)
+2. [What counts as a noise model?](rotated-surface-si1000.md)
+3. [What counts as a decoder and a target?](custom-decoder-hook.md)
+4. [How a full experiment description is assembled](sweep-analysis-report.md)
+5. [Acceptance showcase](acceptance-showcase.md)
 
-It runs the Stage 1 built-in rotated-surface path with scheduled SI1000-style noise, DEM extraction, decoding-graph construction, syndrome sampling, MWPM decoding through `pymatching`, and analysis reporting over 1000 shots.
+The final acceptance showcase is intentionally heavier and is documented
+separately on its own page.
 
-## Demo Set
+## Guided Demo Set
 
-1. [Built-in repetition memory experiment](builtin-repetition-memory.md)
-2. [Rotated surface memory with scheduled SI1000-style noise](rotated-surface-si1000.md)
-3. [Imported Stim circuit pipeline](imported-stim-circuit.md)
-4. [Custom decoder hook](custom-decoder-hook.md)
-5. [Parameter sweep and analysis report](sweep-analysis-report.md)
-6. [Acceptance showcase generator](acceptance-showcase.md)
+1. [Demo 1: What counts as a code here?](builtin-repetition-memory.md)
+2. [Demo 2: What counts as a noise model here?](rotated-surface-si1000.md)
+3. [Demo 3: What counts as a decoder and a target?](custom-decoder-hook.md)
+4. [Demo 4: How a full experiment description is assembled](sweep-analysis-report.md)
+5. [Demo 5: Acceptance showcase](acceptance-showcase.md)
+
+## Supplementary Demo
+
+- [Imported Stim circuit pipeline](imported-stim-circuit.md)
 
 ## Before You Run
 

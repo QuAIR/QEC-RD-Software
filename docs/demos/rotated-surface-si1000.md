@@ -1,40 +1,55 @@
-# Demo 2: Rotated Surface Memory With Scheduled SI1000-Style Noise
+# Demo 2: What Counts as a Noise Model Here?
 
-This demo exercises the Stage 1 surface-code path with the platform-owned scheduled SI1000-style noise model. The model is Stim-executable and does not include leakage.
+This second demo introduces the next keyword category: `noise`.
+The user still does not need to make open-ended choices. The goal is just to
+understand what a phrase like
 
-## What This Verifies
+```text
+si1000 noise
+```
 
-- Built-in `rotated_surface_code`
-- Platform-owned surface-code circuit construction
-- Scheduled SI1000-style Stim-executable noise
-- MWPM decoding through `pymatching`
-- Logical-error-rate analysis
+means inside this repository.
+
+Stage 1 keeps noise limited to Stim-executable Pauli-style presets:
+
+- `toy`
+- `toy_phenomenological`
+- `sd6`
+- `si1000`
+- `stim_circuit_level_si1000`
+
+## What This Demo Should Teach
+
+- Noise models in Stage 1 are platform-defined presets, not arbitrary channels.
+- `si1000` is the main scheduled superconducting-style preset used by the final acceptance demo.
+- Different presets fill different fields of `NoiseModel`.
+- Non-Pauli behavior and leakage are intentionally out of scope.
 
 ## Run
 
 ```python
-from qec_rd.api import ExperimentConfig, CodeSpec, NoiseModel, run_experiment
+from qec_rd.api import NoiseModel
 
-config = ExperimentConfig(
-    code_spec=CodeSpec(
-        family="rotated_surface_code",
-        distance=3,
-        rounds=3,
-        logical_basis="Z",
-    ),
-    noise_spec=NoiseModel.si1000(p=0.001),
-    decoder_spec={"name": "pymatching"},
-    sim_spec={"shots": 100, "seed": 11},
-)
+presets = {
+    "toy": NoiseModel.toy(p=0.001),
+    "toy_phenomenological": NoiseModel.toy_phenomenological(p=0.001),
+    "sd6": NoiseModel.sd6(p=0.001),
+    "si1000": NoiseModel.si1000(p=0.001),
+    "stim_circuit_level_si1000": NoiseModel.stim_circuit_level_si1000(p=0.001),
+}
 
-result = run_experiment(config)
-
-print("circuit_source:", result.circuit.source_kind.value)
-print("shots:", result.analysis_report.shot_count)
-print("failures:", result.analysis_report.failure_count)
-print("logical_error_rate:", result.analysis_report.logical_error_rate)
+for name, noise in presets.items():
+    print(name, noise)
 ```
 
 ## Expected Shape
 
-The demo should complete without relying on `stim.Circuit.generated` for the surface-code circuit. The report should contain 100 shots and a valid logical error rate.
+You should see the same data class shape for every preset, but with different
+fields populated. In particular, scheduled `si1000` should include idle-related
+fields that the coarse circuit-level preset does not.
+
+## Why This Matters for the Later Demos
+
+Once the reader understands `code` and `noise`, the next question becomes:
+"What decoder am I using, and am I asking for a single logical error rate or a
+distance sweep toward threshold?"

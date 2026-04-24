@@ -1,54 +1,66 @@
-# Demo 1: Built-in Repetition Memory Experiment
+# Demo 1: What Counts as a Code Here?
 
-This demo validates the simplest built-in catalog path. It generates a repetition memory circuit, extracts a DEM, builds the decoding graph, samples syndromes, decodes with MWPM through `pymatching`, and reports the logical error rate.
+This first demo is for a reader who does not yet know QEC terminology.
+Its job is not to let the user choose arbitrarily. Its job is to teach the
+first keyword category: `code`.
 
-## What This Verifies
+In Stage 1, the platform owns a small built-in code catalog:
 
-- Built-in circuit catalog entry: `repetition_code:memory`
-- Stim-backed memory circuit generation
-- DEM extraction and platform-owned decoding graph construction
-- Syndrome sampling
-- MWPM decoding through an external package
-- Analysis report generation
+- `repetition_code:memory`
+- `rotated_surface_code`
+- `unrotated_surface_code`
+- `toric_code`
+
+When a later demo says something like:
+
+```text
+rotated surface code
+```
+
+it really means: "use the built-in circuit generator for the
+`rotated_surface_code` family".
+
+## What This Demo Should Teach
+
+- A "code" in this repo means a built-in circuit family or an imported circuit.
+- The public interface still starts from `CodeSpec`.
+- Different code families lead to different detector counts and circuit sizes.
+- The user does not need to understand stabilizer internals before running the later demos.
 
 ## Run
 
 ```python
-from qec_rd.api import (
-    CodeSpec,
-    NoiseModel,
-    analyze_results,
-    build_circuit,
-    build_decoding_graph,
-    extract_dem,
-    run_decoder,
-    sample_syndromes,
-)
+from qec_rd.api import CodeSpec, NoiseModel, build_circuit, extract_dem
 
-code = CodeSpec(
-    family="repetition_code:memory",
-    distance=3,
-    rounds=3,
-    logical_basis="Z",
-)
-noise = NoiseModel(after_clifford_depolarization=0.001)
+families = [
+    "repetition_code:memory",
+    "rotated_surface_code",
+    "unrotated_surface_code",
+    "toric_code",
+]
 
-circuit = build_circuit(code, noise)
-dem = extract_dem(circuit)
-graph = build_decoding_graph(dem)
-batch = sample_syndromes(circuit, shots=100, seed=7)
-decoded = run_decoder(graph, batch, decoder_name="pymatching")
-report = analyze_results(decoded)
-
-print("detectors:", graph.num_detectors)
-print("shots:", report.shot_count)
-print("logical_error_rate:", report.logical_error_rate)
+for family in families:
+    circuit = build_circuit(
+        CodeSpec(family=family, distance=3, rounds=3, logical_basis="Z"),
+        NoiseModel(),
+    )
+    dem = extract_dem(circuit)
+    print(
+        family,
+        "detectors=",
+        dem.num_detectors,
+        "observables=",
+        dem.num_observables,
+    )
 ```
 
 ## Expected Shape
 
-The exact logical error rate depends on stochastic sampling, but the result should have:
+The exact detector counts differ by code family, but every built-in family above
+should produce a valid circuit and DEM.
 
-- `graph.num_detectors > 0`
-- `report.shot_count == 100`
-- `0.0 <= report.logical_error_rate <= 1.0`
+## Why This Matters for the Later Demos
+
+The next demos will introduce `noise`, `decoder`, and `target`.
+For the final acceptance path, we will eventually fix the code keyword to
+`rotated surface code`.

@@ -1,56 +1,78 @@
-# Demo 4: Custom Decoder Hook
+# Demo 3: What Counts as a Decoder and a Target?
 
-Stage 1 uses external decoder packages for built-in adapters, but it also allows custom decoder hooks. This demo plugs a simple decoder into the pipeline without changing DEM or graph construction.
+This third demo introduces the final two keyword categories:
 
-## What This Verifies
+- `decoder`
+- `target`
 
-- Custom decoder entry through the public `run_decoder` API
-- Stable `DecodingGraph` and `SyndromeBatch` inputs
-- Standard `DecodeResult` normalization
-- Analysis compatibility with user-provided decoder logic
+Examples of the phrases we want a beginner to recognize are:
+
+```text
+mwpm, ler
+bposd, ler
+mwpm, threshold
+```
+
+In Stage 1:
+
+- built-in decoder adapters come from external packages
+- `mwpm` means `pymatching`
+- `bposd` means BP+OSD-0 through `ldpc`
+- `ler` means one configured experiment
+- `threshold` means a multi-distance sweep, not a single run
+
+## What This Demo Should Teach
+
+- Decoder choice and analysis target are different concepts.
+- `LER` is a single-run output.
+- `threshold` needs multiple distances and repeated end-to-end runs.
+- The final acceptance demo fixes the decoder to `MWPM`.
 
 ## Run
 
 ```python
-import numpy as np
+from qec_rd.api import CodeSpec, ExperimentConfig, NoiseModel, run_experiment
 
-from qec_rd.api import (
-    CodeSpec,
-    NoiseModel,
-    analyze_results,
-    build_circuit,
-    build_decoding_graph,
-    extract_dem,
-    normalize_custom_decode_result,
-    run_decoder,
-    sample_syndromes,
+base = dict(
+    code_spec=CodeSpec(
+        family="rotated_surface_code",
+        distance=3,
+        rounds=3,
+        logical_basis="Z",
+    ),
+    noise_spec=NoiseModel.si1000(p=0.001),
+    sim_spec={"shots": 100, "seed": 11},
 )
 
-
-def zero_decoder(graph, batch):
-    predicted = np.zeros_like(batch.observable_flips, dtype=np.bool_)
-    return normalize_custom_decode_result(
-        decoder_name="zero-decoder-demo",
-        predicted_observables=predicted,
-        actual_observables=batch.observable_flips,
-        metadata={"graph_detectors": graph.num_detectors},
+for decoder_name in ["pymatching", "bposd"]:
+    result = run_experiment(
+        ExperimentConfig(
+            **base,
+            decoder_spec={"name": decoder_name, "osd_order": 0},
+        )
     )
-
-
-circuit = build_circuit(
-    CodeSpec("repetition_code:memory", distance=3, rounds=3),
-    NoiseModel(after_clifford_depolarization=0.001),
-)
-graph = build_decoding_graph(extract_dem(circuit))
-batch = sample_syndromes(circuit, shots=32, seed=31)
-decoded = run_decoder(graph, batch, decoder_name="custom", decoder_fn=zero_decoder)
-report = analyze_results(decoded)
-
-print("decoder:", decoded.decoder_name)
-print("graph_detectors:", decoded.metadata["graph_detectors"])
-print("logical_error_rate:", report.logical_error_rate)
+    print(
+        decoder_name,
+        "failures=",
+        result.analysis_report.failure_count,
+        "ler=",
+        result.analysis_report.logical_error_rate,
+    )
 ```
 
 ## Expected Shape
 
-The demo should return a normal `DecodeResult` and `AnalysisReport`. The decoder is intentionally simple; the purpose is to verify hook integration, not decoder quality.
+Both decoders should run through the same Stage 1 artifact chain and produce a
+valid `logical_error_rate`.
+
+## Why This Matters for the Later Demos
+
+By this point the reader has seen the four core keywords:
+
+- `code`
+- `noise`
+- `decoder`
+- `target`
+
+The next demo shows how those keywords are assembled into one complete
+experiment description.

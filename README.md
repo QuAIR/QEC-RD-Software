@@ -124,14 +124,17 @@ print(result.analysis_report.logical_error_rate)
 
 ## End-to-End Demos
 
-The docs include five acceptance demos that validate the design:
+The docs now present five demos as a progressive onboarding path:
 
-- [Built-in repetition memory experiment](docs/demos/builtin-repetition-memory.md)
-- [Rotated surface memory with scheduled SI1000-style noise](docs/demos/rotated-surface-si1000.md)
+- [Demo 1: What counts as a code here?](docs/demos/builtin-repetition-memory.md)
+- [Demo 2: What counts as a noise model here?](docs/demos/rotated-surface-si1000.md)
+- [Demo 3: What counts as a decoder and a target?](docs/demos/custom-decoder-hook.md)
+- [Demo 4: How a full experiment description is assembled](docs/demos/sweep-analysis-report.md)
+- [Demo 5: Acceptance showcase](docs/demos/acceptance-showcase.md)
+
+Supplementary material:
+
 - [Imported Stim circuit pipeline](docs/demos/imported-stim-circuit.md)
-- [Custom decoder hook](docs/demos/custom-decoder-hook.md)
-- [Parameter sweep and analysis report](docs/demos/sweep-analysis-report.md)
-- [Acceptance showcase generator](docs/demos/acceptance-showcase.md)
 
 Build the docs locally with:
 
