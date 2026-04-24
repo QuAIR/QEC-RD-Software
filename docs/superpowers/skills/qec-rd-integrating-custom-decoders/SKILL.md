@@ -1,63 +1,53 @@
 ---
-name: qec-rd-integrating-custom-decoders
-description: Use when connecting a user-provided decoder to the QEC-RD-Software Stage 1 pipeline through the custom decoder hook.
+name: qec-rd-decoder-choice
+description: Use when an agent must decide which decoder path best fits a QEC-RD-Software experiment, given DEM structure, Stage 1 limits, and review goals.
 ---
 
-# QEC-RD Integrating Custom Decoders
+# QEC-RD Decoder Choice
 
 ## Overview
 
-Stage 1 allows custom decoders, but it does not allow custom DEM or graph construction.
+This skill is about choosing the right decoder story for the task.
 
-Core principle: custom decoders plug into stable platform inputs and return a standard `DecodeResult`.
+Core principle: choose the simplest decoder that is valid for the graph and the claim.
 
 ## When To Use
 
 Use this skill when:
 
-- Writing a custom decoder example
-- Adapting an external decoder not yet wrapped by the repo
-- Testing the custom decoder hook
-- Documenting the expected custom decoder contract
+- A run could use MWPM, BP+OSD, or a custom decoder hook
+- A demo needs the safest decoder for acceptance
+- Graphlike versus hypergraph behavior matters
+- A reviewer asks why one decoder was used over another
 
-Do not use this skill when:
+Do not use this skill to:
 
-- Reimplementing MWPM or BP+OSD inside the repo
-- Exposing backend-native decoder internals as the public API
+- Reimplement a decoder
+- Change DEM semantics to force decoder compatibility
 
-## Decoder Contract
+## Choice Rules
 
-Inputs:
+1. Prefer `pymatching` for graphlike Stage 1 acceptance paths
+2. Use `ldpc` / BP+OSD when the goal is decoder breadth rather than the safest default demo
+3. Use custom decoder hooks only when the task is explicitly about extension points
+4. Escalate when the DEM structure exceeds the intended decoder assumptions
 
-- `DecodingGraph`
-- `SyndromeBatch`
-- Optional decoder-specific keyword arguments
+## Explanation Pattern
 
-Output:
+When reporting the choice, state:
 
-- `DecodeResult`
-
-If a helper decoder produces raw observable predictions, normalize them with `normalize_custom_decode_result`.
-
-## Recommended Flow
-
-1. Build or import a circuit
-2. Extract DEM and build graph
-3. Sample syndromes
-4. Call `run_decoder(..., decoder_name="custom", decoder_fn=...)`
-5. Analyze the returned `DecodeResult`
+- what the DEM structure permits
+- why the selected decoder is the best fit
+- what limitation is being accepted, if any
 
 ## Common Mistakes
 
 | Mistake | Correction |
 | --- | --- |
-| Returning a dict or tuple from the custom decoder | Return a `DecodeResult` or normalize into one. |
-| Mutating graph or batch objects in-place | Treat inputs as read-only experiment artifacts. |
-| Using custom decoders to change DEM semantics | Keep DEM and graph logic platform-owned in Stage 1. |
+| Treating decoder choice as arbitrary | Tie it to graph structure and task goal |
+| Defaulting to custom decoders for first demos | Keep first demos on external standard decoders |
+| Hiding graphlike limitations | State them clearly when they affect the choice |
 
-## Minimum Verification
+## Stage 1 Guard
 
-- Custom decoder runs through `run_decoder`
-- Return value is a valid `DecodeResult`
-- Failure mask length matches shot count
-- The result can be passed to `analyze_results`
+Decoder choice must stay within external-package decoders or the custom hook, without reopening DEM or graph construction.

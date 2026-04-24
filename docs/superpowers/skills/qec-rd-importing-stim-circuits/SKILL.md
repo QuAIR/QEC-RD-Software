@@ -1,58 +1,54 @@
 ---
-name: qec-rd-importing-stim-circuits
-description: Use when validating or documenting circuit import in QEC-RD-Software through a stim.Circuit object or .stim file.
+name: qec-rd-demo-selection
+description: Use when several demos or workflow paths are possible and an agent must choose the best one for review, onboarding, or a fast end-to-end proof.
 ---
 
-# QEC-RD Importing Stim Circuits
+# QEC-RD Demo Selection
 
 ## Overview
 
-Circuit import is the main Stage 1 customization path for users.
+This skill helps an agent choose the right demo, not merely run one.
 
-Core principle: let users customize the circuit input while keeping DEM extraction, graph construction, decoding, and analysis platform-owned.
+Core principle: optimize for reviewer success rate first, breadth second.
 
 ## When To Use
 
 Use this skill when:
 
-- Loading a `stim.Circuit` directly
-- Loading a `.stim` file from disk
-- Writing docs or tests around imported-circuit workflows
-- Comparing generated and imported circuits through the same downstream pipeline
+- A reviewer asks for “one demo”
+- The repo contains multiple valid end-to-end examples
+- Time is limited and the safest path must be chosen
+- A fresh agent needs a single recommended entry point
 
-Do not use this skill when:
+Do not use this skill to:
 
-- Designing a custom code-definition interface
-- Accepting arbitrary non-Stim formats as Stage 1 runtime inputs
+- Design a new experiment from scratch
+- Explain suspicious results after execution
 
-## Allowed Stage 1 Inputs
+## Selection Heuristics
 
-- `stim.Circuit`
-- `.stim` files
+Choose the path that is, in order:
 
-Future formats may be added later, but Stage 1 should describe imported circuits in terms of `CircuitArtifact`, not backend-native file handling.
+1. Most stable under Stage 1 assumptions
+2. Fastest to run from repo root
+3. Least dependent on optional setup
+4. Most representative of the core pipeline
 
-## Standard Flow
+## Preferred Order
 
-1. Load the source with `load_circuit`
-2. Confirm `CircuitArtifact.source_kind`
-3. Extract DEM
-4. Build decoding graph
-5. Sample and decode
-6. Produce an analysis report
+1. Official default demo
+2. Built-in repetition memory demo
+3. Other built-in memory demos
+4. Imported-circuit or custom-decoder demos
 
 ## Common Mistakes
 
 | Mistake | Correction |
 | --- | --- |
-| Treating imported circuits as a separate analysis path | Reuse the same DEM, graph, decode, and analysis flow. |
-| Accepting unsupported suffixes silently | Raise an explicit unsupported-format error. |
-| Letting imported circuits bypass platform objects | Always wrap them in `CircuitArtifact`. |
+| Choosing the most impressive demo first | Choose the most reliable first |
+| Treating all demos as equal | Rank by setup friction and failure risk |
+| Forcing custom-input paths in first contact | Prefer built-in paths unless import is the point |
 
-## Minimum Verification
+## Stage 1 Guard
 
-- Imported circuit is wrapped as `CircuitArtifact`
-- `source_kind` matches object or file import
-- DEM extraction succeeds
-- A decoder can run on sampled syndromes
-- The final report includes shot count and logical error rate
+If a demo depends on non-Stage-1 ideas, it is not the default review choice.

@@ -1,64 +1,53 @@
 ---
-name: qec-rd-stage1-guardrails
-description: Use when reviewing or implementing changes that might drift beyond the approved Stage 1 architecture or public boundaries in QEC-RD-Software.
+name: qec-rd-result-sanity-check
+description: Use when a QEC-RD-Software result looks surprising and an agent must decide whether it reflects expected statistics, a known Stage 1 limitation, bad configuration, or a likely bug.
 ---
 
-# QEC-RD Stage 1 Guardrails
+# QEC-RD Result Sanity Check
 
 ## Overview
 
-This skill is a scope check for contributors and agents.
+This skill helps separate “interesting result” from “broken run”.
 
-Core principle: protect the approved Stage 1 backbone from architecture drift while still allowing practical engineering progress.
+Core principle: classify the surprise before proposing a fix.
 
 ## When To Use
 
 Use this skill when:
 
-- Reviewing a PR for Stage 1 scope compliance
-- Deciding whether a new idea belongs in Stage 1 or a later stage
-- Writing docs or tests that define public expectations
-- Making changes near the public object chain or user customization boundaries
+- A logical error rate looks implausible
+- A decoder succeeds or fails unexpectedly
+- A demo output needs a credibility check before presentation
+- A reviewer asks whether a result is trustworthy
 
-Do not use this skill when:
+Do not use this skill to:
 
-- The work is already an agreed Stage 2 topic
-- The task is a small isolated bugfix entirely inside established Stage 1 behavior
+- Design the initial experiment
+- Present final reviewer-facing prose before the result is classified
 
-## Stage 1 Non-Negotiables
+## Sanity Check Flow
 
-- Runtime backend is `stim` only.
-- Built-in catalog is repetition, rotated surface, unrotated surface, and toric.
-- User customization is circuit import, decoder hooks, syndrome data input, and analysis hooks.
-- Arbitrary custom code definitions are out of scope for the Stage 1 user interface.
-- DEM and decoding graph behavior are fixed and platform-owned.
-- Non-Pauli runtime noise is out of scope.
-- Decoder algorithms come from external packages or custom hooks.
+1. Check whether the run stayed inside approved Stage 1 scope
+2. Check whether the chosen decoder matches the DEM structure
+3. Check whether shot count is large enough for the claim being made
+4. Compare the result against known limitations and expected qualitative behavior
+5. Classify the outcome as expected, limited, misconfigured, or likely buggy
 
-## Review Questions
+## Classification Targets
 
-Before accepting a change, ask:
-
-1. Does this preserve the `CodeSpec -> CircuitArtifact -> DemArtifact -> DecodingGraph -> SyndromeBatch -> DecodeResult -> AnalysisReport` chain?
-2. Does it keep `stim` as the only runtime backend?
-3. Does it avoid opening DEM or graph customization to users?
-4. Does it avoid introducing non-Pauli runtime behavior?
-5. Does it keep decoders external or hook-based instead of reimplemented in-repo?
+- Expected statistical behavior
+- Known Stage 1 architectural limitation
+- Configuration or usage issue
+- Implementation bug candidate
 
 ## Common Mistakes
 
 | Mistake | Correction |
 | --- | --- |
-| Treating every extension point as urgent | Keep only the agreed Stage 1 extension points. |
-| Exposing backend-native objects in public docs | Speak in terms of platform objects first. |
-| Sneaking Stage 2 topics into Stage 1 demos | Record them as future work instead. |
+| Treating every odd result as a code bug | First check limitation and configuration buckets |
+| Presenting untrusted numbers confidently | Classify the result before summarizing it |
+| Ignoring Stage 1 boundaries during diagnosis | Use the agreed scope as the first filter |
 
-## Escalate When
+## Stage 1 Guard
 
-Stop and ask before proceeding if a change needs:
-
-- A new backend provider model
-- User-customizable DEM or graph construction
-- Non-Pauli runtime execution
-- In-repo decoder reimplementation
-- A materially different public object chain
+Known limits involving graphlike decoding, fixed DEM behavior, and Stim-only execution should be identified as scope constraints before escalating to bug claims.

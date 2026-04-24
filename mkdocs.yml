@@ -18,11 +18,11 @@ nav:
       - Sweep and Analysis Report: demos/sweep-analysis-report.md
   - Repo Skills:
       - Overview: superpowers/skills/index.md
-      - Acceptance: superpowers/skills/qec-rd-acceptance/SKILL.md
-      - Running Memory Experiments: superpowers/skills/qec-rd-running-memory-experiments/SKILL.md
-      - Importing Stim Circuits: superpowers/skills/qec-rd-importing-stim-circuits/SKILL.md
-      - Integrating Custom Decoders: superpowers/skills/qec-rd-integrating-custom-decoders/SKILL.md
-      - Stage 1 Guardrails: superpowers/skills/qec-rd-stage1-guardrails/SKILL.md
+      - Demo Selection: superpowers/skills/qec-rd-importing-stim-circuits/SKILL.md
+      - Experiment Design: superpowers/skills/qec-rd-running-memory-experiments/SKILL.md
+      - Decoder Choice: superpowers/skills/qec-rd-integrating-custom-decoders/SKILL.md
+      - Result Sanity Check: superpowers/skills/qec-rd-stage1-guardrails/SKILL.md
+      - Review Presentation: superpowers/skills/qec-rd-acceptance/SKILL.md
   - API Reference:
       - Overview: api/index.md
       - Public API: api/public-api.md
