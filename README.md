@@ -160,6 +160,14 @@ Before changing architecture or public behavior, read:
 - [Stage 1 backbone design](docs/superpowers/specs/2026-04-20-qec-rd-platform-backbone-design-en.md)
 - [Three-person execution plan](docs/superpowers/plans/2026-04-21-qec-rd-stage1-3person-execution.md)
 
+Agent skills for common tasks:
+
+- [Acceptance testing](docs/superpowers/skills/qec-rd-acceptance/SKILL.md)
+- [Importing Stim circuits](docs/superpowers/skills/qec-rd-importing-stim-circuits/SKILL.md)
+- [Integrating custom decoders](docs/superpowers/skills/qec-rd-integrating-custom-decoders/SKILL.md)
+- [Running memory experiments](docs/superpowers/skills/qec-rd-running-memory-experiments/SKILL.md)
+- [Stage 1 guardrails](docs/superpowers/skills/qec-rd-stage1-guardrails/SKILL.md)
+
 Keep Stage 1 changes small and testable. Do not add non-Pauli runtime behavior, do not make DEM/graph construction user-customizable, and do not reimplement external decoders inside this repo.
 
 ## Current Limitations
@@ -179,5 +187,11 @@ Keep Stage 1 changes small and testable. Do not add non-Pauli runtime behavior, 
 ## License
 
 This project is licensed under the Apache License 2.0.
+
+**Why Apache 2.0?**
+- Permissive for academic research and commercial use alike.
+- Compatible with the licenses of our key dependencies (`stim`, `pymatching`, `ldpc`, `numpy`, `scipy`).
+- Patent grant clause protects contributors and downstream users.
+- Standard choice in the quantum software ecosystem.
 
 See [LICENSE](LICENSE) for the full text and [NOTICE](NOTICE) for attribution details.
