@@ -41,8 +41,8 @@ The default evaluation demo uses `rotated_surface_code` with scheduled SI1000-st
 
 ## Acceptance Showcase
 
-For a heavier acceptance-oriented sweep that compares `MWPM` and `BP+OSD-0`
-over `d = 3, 5, 7, 9` with scheduled `si1000`, use:
+For a heavier acceptance-oriented sweep over `d = 3, 5, 7` with scheduled
+`si1000` and `pymatching`, use:
 
 ```powershell
 python -m qec_rd.showcase
@@ -54,9 +54,14 @@ Or, after editable install:
 qec-rd-showcase
 ```
 
-This generator writes `csv/json/png` assets into `docs/demos/assets/`.
+The committed acceptance figure:
+
+![Acceptance showcase](docs/demos/assets/rotated_surface_si1000_threshold_showcase.png)
+
+The generator writes `csv/json/png` assets into `docs/demos/assets/`.
 It is intentionally slower than the quick default demo and is meant for
 producing the final acceptance-style figure rather than first-contact onboarding.
+Full reproduction instructions are in [`docs/demos/acceptance-showcase.md`](docs/demos/acceptance-showcase.md).
 
 ## Why This Repo Exists
 

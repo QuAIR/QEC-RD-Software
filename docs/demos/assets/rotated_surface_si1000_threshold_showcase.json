@@ -1,0 +1,172 @@
+{
+  "distances": [
+    3,
+    5,
+    7
+  ],
+  "decoders": [
+    "pymatching"
+  ],
+  "physical_error_rates": [
+    0.0025,
+    0.0035,
+    0.0042,
+    0.005,
+    0.006
+  ],
+  "shots": 10000,
+  "seed_base": 20260424,
+  "reference_threshold": 0.0042,
+  "rows": [
+    {
+      "distance": 3,
+      "decoder_name": "pymatching",
+      "physical_error_rate": 0.0025,
+      "shots": 10000,
+      "seed": 20260424,
+      "logical_error_rate": 0.0248,
+      "logical_error_rate_stderr": 0.001555151439571079,
+      "failure_count": 248
+    },
+    {
+      "distance": 3,
+      "decoder_name": "pymatching",
+      "physical_error_rate": 0.0035,
+      "shots": 10000,
+      "seed": 20260425,
+      "logical_error_rate": 0.0434,
+      "logical_error_rate_stderr": 0.002037558342722976,
+      "failure_count": 434
+    },
+    {
+      "distance": 3,
+      "decoder_name": "pymatching",
+      "physical_error_rate": 0.0042,
+      "shots": 10000,
+      "seed": 20260426,
+      "logical_error_rate": 0.0605,
+      "logical_error_rate_stderr": 0.0023841088481862567,
+      "failure_count": 605
+    },
+    {
+      "distance": 3,
+      "decoder_name": "pymatching",
+      "physical_error_rate": 0.005,
+      "shots": 10000,
+      "seed": 20260427,
+      "logical_error_rate": 0.0803,
+      "logical_error_rate_stderr": 0.0027175707902463184,
+      "failure_count": 803
+    },
+    {
+      "distance": 3,
+      "decoder_name": "pymatching",
+      "physical_error_rate": 0.006,
+      "shots": 10000,
+      "seed": 20260428,
+      "logical_error_rate": 0.1141,
+      "logical_error_rate_stderr": 0.003179326815538157,
+      "failure_count": 1141
+    },
+    {
+      "distance": 5,
+      "decoder_name": "pymatching",
+      "physical_error_rate": 0.0025,
+      "shots": 10000,
+      "seed": 20260429,
+      "logical_error_rate": 0.0148,
+      "logical_error_rate_stderr": 0.0012075164595151489,
+      "failure_count": 148
+    },
+    {
+      "distance": 5,
+      "decoder_name": "pymatching",
+      "physical_error_rate": 0.0035,
+      "shots": 10000,
+      "seed": 20260430,
+      "logical_error_rate": 0.039,
+      "logical_error_rate_stderr": 0.0019359493795035035,
+      "failure_count": 390
+    },
+    {
+      "distance": 5,
+      "decoder_name": "pymatching",
+      "physical_error_rate": 0.0042,
+      "shots": 10000,
+      "seed": 20260431,
+      "logical_error_rate": 0.0612,
+      "logical_error_rate_stderr": 0.002396968084893914,
+      "failure_count": 612
+    },
+    {
+      "distance": 5,
+      "decoder_name": "pymatching",
+      "physical_error_rate": 0.005,
+      "shots": 10000,
+      "seed": 20260432,
+      "logical_error_rate": 0.0981,
+      "logical_error_rate_stderr": 0.002974498108925269,
+      "failure_count": 981
+    },
+    {
+      "distance": 5,
+      "decoder_name": "pymatching",
+      "physical_error_rate": 0.006,
+      "shots": 10000,
+      "seed": 20260433,
+      "logical_error_rate": 0.1295,
+      "logical_error_rate_stderr": 0.0033575251302112395,
+      "failure_count": 1295
+    },
+    {
+      "distance": 7,
+      "decoder_name": "pymatching",
+      "physical_error_rate": 0.0025,
+      "shots": 10000,
+      "seed": 20260434,
+      "logical_error_rate": 0.0095,
+      "logical_error_rate_stderr": 0.0009700386590234432,
+      "failure_count": 95
+    },
+    {
+      "distance": 7,
+      "decoder_name": "pymatching",
+      "physical_error_rate": 0.0035,
+      "shots": 10000,
+      "seed": 20260435,
+      "logical_error_rate": 0.0297,
+      "logical_error_rate_stderr": 0.0016975838712711664,
+      "failure_count": 297
+    },
+    {
+      "distance": 7,
+      "decoder_name": "pymatching",
+      "physical_error_rate": 0.0042,
+      "shots": 10000,
+      "seed": 20260436,
+      "logical_error_rate": 0.0555,
+      "logical_error_rate_stderr": 0.002289535979188796,
+      "failure_count": 555
+    },
+    {
+      "distance": 7,
+      "decoder_name": "pymatching",
+      "physical_error_rate": 0.005,
+      "shots": 10000,
+      "seed": 20260437,
+      "logical_error_rate": 0.0969,
+      "logical_error_rate_stderr": 0.0029582155093907546,
+      "failure_count": 969
+    },
+    {
+      "distance": 7,
+      "decoder_name": "pymatching",
+      "physical_error_rate": 0.006,
+      "shots": 10000,
+      "seed": 20260438,
+      "logical_error_rate": 0.1637,
+      "logical_error_rate_stderr": 0.003700031216084535,
+      "failure_count": 1637
+    }
+  ]
+}
