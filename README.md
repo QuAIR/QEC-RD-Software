@@ -19,8 +19,7 @@ Live documentation: [quairkit.com/QEC-RD-Software](https://quairkit.com/QEC-RD-S
 ## Evaluation Prompt
 
 ```text
-Run one complete end-to-end demo for this repo from the repo root, installing dependencies if needed.
-Verify it works and briefly summarize the pipeline exercised and the result.
+From the repo root, use the guided demos to teach a beginner how to run one logical-error-rate experiment with this package, installing dependencies if needed and briefly reporting the result.
 ```
 
 ## Official Default Demo
@@ -213,6 +212,7 @@ Before changing architecture or public behavior, read:
 
 Agent skills for common tasks:
 
+- [Beginner LER onboarding](docs/superpowers/skills/qec-rd-beginner-ler-onboarding/SKILL.md)
 - [Acceptance testing](docs/superpowers/skills/qec-rd-acceptance/SKILL.md)
 - [Importing Stim circuits](docs/superpowers/skills/qec-rd-importing-stim-circuits/SKILL.md)
 - [Integrating custom decoders](docs/superpowers/skills/qec-rd-integrating-custom-decoders/SKILL.md)

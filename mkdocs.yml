@@ -19,6 +19,7 @@ nav:
       - Supplement - Imported Stim Circuit: demos/imported-stim-circuit.md
   - Repo Skills:
       - Overview: superpowers/skills/index.md
+      - Beginner LER Onboarding: superpowers/skills/qec-rd-beginner-ler-onboarding/SKILL.md
       - Demo Selection: superpowers/skills/qec-rd-importing-stim-circuits/SKILL.md
       - Experiment Design: superpowers/skills/qec-rd-running-memory-experiments/SKILL.md
       - Decoder Choice: superpowers/skills/qec-rd-integrating-custom-decoders/SKILL.md
