@@ -161,6 +161,26 @@ def compute_new_interval(state: dict, new_notifications: int, recent_events: lis
     return max(MIN_INTERVAL, interval)
 
 
+def is_beijing_night_hours(dt: datetime) -> bool:
+    """Return True if Beijing time is between 22:00 and 08:00 (night pause)."""
+    beijing = dt.astimezone(timezone(timedelta(hours=8)))
+    hour = beijing.hour
+    return hour >= 22 or hour < 8
+
+
+def next_beijing_morning_8am(dt: datetime) -> datetime:
+    """Return the next 08:00 Beijing time as UTC datetime."""
+    beijing = dt.astimezone(timezone(timedelta(hours=8)))
+    if beijing.hour >= 22:
+        # After 22:00, next morning is tomorrow
+        next_day = beijing.date() + timedelta(days=1)
+    else:
+        # Before 08:00, next morning is today
+        next_day = beijing.date()
+    morning_beijing = datetime(next_day.year, next_day.month, next_day.day, 8, 0, 0, tzinfo=timezone(timedelta(hours=8)))
+    return morning_beijing.astimezone(timezone.utc)
+
+
 def main():
     now = now_utc()
 
@@ -169,6 +189,14 @@ def main():
         return 2
 
     state = load_state()
+
+    # Night pause: Beijing 22:00 - 08:00
+    if is_beijing_night_hours(now):
+        next_morning = next_beijing_morning_8am(now)
+        state["next_check_time"] = next_morning.isoformat()
+        save_state(state)
+        logger.info(f"Night pause (Beijing {now.astimezone(timezone(timedelta(hours=8))).strftime('%H:%M')}), next check at {next_morning.isoformat()}")
+        return 0
 
     if not should_check(state):
         next_str = state.get("next_check_time", "unknown")
