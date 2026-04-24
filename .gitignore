@@ -98,6 +98,9 @@ logs/
 tmp/
 temp/
 
+# External reference repositories and papers kept only for local study
+doc/
+
 .cursor/*
 .claude/*
 .worktrees/
